@@ -109,7 +109,7 @@ const PsychologistCard = ({ psychologist }: { psychologist: Psychologist }) => {
             render={<Link href={`/psychologists/${psychologist.id}`} />}
             nativeButton={false}
           >
-            Book
+            View Details
           </Button>
         </div>
       </div>
