@@ -3,6 +3,7 @@ import { BookAppointment } from "@/components/BookAppointment";
 import { Hero3 } from "@/components/hero3";
 import { HeroActionCards } from "@/components/HeroActionCards";
 import { OurRecords } from "@/components/OurRecords";
+import { OurPsychologists } from "../ui-components/our-psychologists";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <AboutUs />
       <OurRecords />
       <BookAppointment />
+      <OurPsychologists />
     </div>
   );
 }
