@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Book, Menu, Trees, Zap } from "lucide-react";
 
 import {
   Accordion,
@@ -160,8 +160,8 @@ const Navbar1 = ({
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
                   <Accordion
-                    type="single"
-                    collapsible
+                    // type="single"
+                    // collapsible
                     className="flex w-full flex-col gap-4"
                   >
                     {menu.map((item) => renderMobileMenuItem(item))}

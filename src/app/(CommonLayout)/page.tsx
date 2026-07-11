@@ -12,8 +12,8 @@ export default function Home() {
       <HeroActionCards />
       <AboutUs />
       <OurRecords />
-      <BookAppointment />
       <OurPsychologists />
+      <BookAppointment />
     </div>
   );
 }
