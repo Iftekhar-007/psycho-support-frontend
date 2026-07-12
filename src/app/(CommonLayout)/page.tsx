@@ -4,6 +4,7 @@ import { Hero3 } from "@/components/hero3";
 import { HeroActionCards } from "@/components/HeroActionCards";
 import { OurRecords } from "@/components/OurRecords";
 import { OurPsychologists } from "../ui-components/our-psychologists";
+import { InsightSpotlight } from "../ui-components/InsightSpotlight";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <AboutUs />
       <OurRecords />
       <OurPsychologists />
+      <InsightSpotlight />
       <BookAppointment />
     </div>
   );
