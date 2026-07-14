@@ -160,7 +160,6 @@ const Navbar1 = ({
     } else if (user?.role === "PSYCHOLOGIST") {
       router.push("/create-profile/psychologist");
     }
-    // console.log("Create profile clicked, role:", user?.role);
   };
 
   const handleSignOut = async () => {
