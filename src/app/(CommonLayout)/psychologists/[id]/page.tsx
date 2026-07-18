@@ -19,6 +19,7 @@ import {
   isUsablePhoto,
 } from "@/app/ui-components/psychologist-card";
 import { PsychologistImage } from "@/app/ui-components/psychologist-image";
+import BookAppointmentDialog from "@/app/ui-components/book-appointment-dialog";
 // import { PsychologistImage } from "@/components/psychologist-image";
 // import {
 //   getFallbackPhoto,
@@ -135,7 +136,7 @@ const PsychologistDetailPage = async ({ params }: PageProps) => {
                 <span>{psychologist.address}</span>
               </div>
 
-              <Button
+              {/* <Button
                 size="lg"
                 className="mt-2 w-full bg-[#0f1f1c] text-[#F7F5F0] hover:bg-[#1c332d]"
                 render={
@@ -146,7 +147,14 @@ const PsychologistDetailPage = async ({ params }: PageProps) => {
                 nativeButton={false}
               >
                 Book Appointment
-              </Button>
+              </Button> */}
+
+              <BookAppointmentDialog
+                psychologistId={psychologist.id}
+                psychologistName={psychologist.name}
+                availability={psychologist.availability}
+                appointmentFee={psychologist.appointmentFee}
+              />
             </Card>
           </div>
 
