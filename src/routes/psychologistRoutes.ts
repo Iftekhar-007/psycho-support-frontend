@@ -7,7 +7,7 @@ export const psychologistRoutes: Route[] = [
     items: [
       {
         title: "My appointments",
-        url: "/my-appointments",
+        url: "/psychologist-dashboard/my-appointments",
         icon: CalendarIcon,
       },
       {

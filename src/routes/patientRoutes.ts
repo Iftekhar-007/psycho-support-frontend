@@ -7,12 +7,12 @@ export const patientRoutes: Route[] = [
     items: [
       {
         title: "My appointments",
-        url: "/my-appointments",
+        url: "/patient-dashboard/my-appointments",
         icon: CalendarIcon,
       },
       {
         title: "My profile",
-        url: "/my-profile",
+        url: "/patient-dashboard/my-profile",
         icon: UsersIcon,
       },
       {

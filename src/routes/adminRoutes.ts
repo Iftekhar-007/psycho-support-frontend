@@ -26,7 +26,7 @@ export const adminRoutes: Route[] = [
       },
       {
         title: "All Appointments",
-        url: "/all-appointments",
+        url: "/dashboard/all-appointments",
         // icon: <CalendarIcon />,
         icon: ChartBarIcon,
       },
