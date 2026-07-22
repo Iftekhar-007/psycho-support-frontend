@@ -1,46 +1,47 @@
-// import { TooltipProvider } from "@/components/ui/tooltip";
-// import { Geist, Geist_Mono } from "next/font/google";
-
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
-
-// export default function DashboardLayout({
-//   children,
-// }: Readonly<{
-//   children: React.ReactNode;
-// }>) {
-//   return (
-//     <html
-//       lang="en"
-//       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-//     >
-//       <body className="min-h-full flex flex-col">
-//         <TooltipProvider>{children}</TooltipProvider>
-//       </body>
-//     </html>
-//   );
-// }
-
 import { AppSidebar } from "@/components/app-sidebar";
-import { Separator } from "@/components/ui/separator";
+
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { userService } from "@/services/userService";
+import { redirect } from "next/navigation";
 
-export default function DashboardLayout({
-  children,
+export default async function DashboardLayout({
+  admin,
+  patient,
+  psychologist,
 }: {
-  children: React.ReactNode;
+  admin: React.ReactNode;
+  patient: React.ReactNode;
+  psychologist: React.ReactNode;
 }) {
+  const { data: session } = await userService.getSession();
+  const userInfo = session?.user;
+  if (!userInfo) {
+    redirect("/auth/sign-in");
+  }
+
+  let content;
+
+  switch (userInfo.role) {
+    case "ADMIN":
+      content = admin;
+      break;
+
+    case "PSYCHOLOGIST":
+      content = psychologist;
+      break;
+
+    case "PATIENT":
+      content = patient;
+      break;
+
+    default:
+      redirect("/auth/sign-in");
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -48,13 +49,9 @@ export default function DashboardLayout({
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 px-4">
           <SidebarTrigger className="" />
-          {/* <Separator
-            orientation="horizontal"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          /> */}
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4">{content}</div>
       </SidebarInset>
     </SidebarProvider>
   );

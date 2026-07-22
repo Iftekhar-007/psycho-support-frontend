@@ -18,6 +18,11 @@ import {
   UsersIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { Route } from "@/types";
+import { Roles } from "@/constants/roles";
+import { adminRoutes } from "@/routes/adminRoutes";
+import { psychologistRoutes } from "@/routes/psychologistRoutes";
+import { patientRoutes } from "@/routes/patientRoutes";
 
 const data = {
   // user: {
@@ -29,27 +34,27 @@ const data = {
     {
       title: "Home",
       url: "/",
-      icon: <LayoutDashboardIcon />,
+      // icon: <LayoutDashboardIcon />,
     },
     {
       title: "My Appointments",
       url: "/dashboard/my-appointments",
-      icon: <ListIcon />,
+      // icon: <ListIcon />,
     },
     {
       title: "Analytics",
       url: "#",
-      icon: <ChartBarIcon />,
+      // icon: <ChartBarIcon />,
     },
     {
       title: "Projects",
       url: "#",
-      icon: <FolderIcon />,
+      // icon: <FolderIcon />,
     },
     {
       title: "Team",
       url: "#",
-      icon: <UsersIcon />,
+      // icon: <UsersIcon />,
     },
   ],
 };
@@ -61,10 +66,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email: session?.user.email ?? "",
     avatar: session?.user.image ?? "",
   };
+
+  const role = session?.user.role;
+
+  let routes: Route[] = [];
+
+  switch (role) {
+    case Roles.admin:
+      routes = adminRoutes;
+      break;
+
+    case Roles.psychologist:
+      routes = psychologistRoutes;
+      break;
+
+    case Roles.patient:
+      routes = patientRoutes;
+      break;
+
+    default:
+      routes = [];
+      break;
+  }
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={routes} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
