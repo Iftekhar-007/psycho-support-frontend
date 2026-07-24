@@ -400,7 +400,7 @@ export default function MyAppointments() {
                   </Select>
 
                   {error?.id === appointment.id && (
-                    <p className="text-destructive text-xs">{error.message}</p>
+                    <p className="text-destructive text-xs">{error?.message}</p>
                   )}
                 </div>
               )}

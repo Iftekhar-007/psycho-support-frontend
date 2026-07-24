@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Route } from "@/types";
 
 // import { CalendarIcon, CheckCircleIcon, UserIcon, UsersIcon } from "";

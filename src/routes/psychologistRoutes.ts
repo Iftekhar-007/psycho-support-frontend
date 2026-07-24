@@ -12,14 +12,14 @@ export const psychologistRoutes: Route[] = [
       },
       {
         title: "My profile",
-        url: "/my-profile",
+        url: "/psychologist-dashboard/my-profile",
         icon: UsersIcon,
       },
-      {
-        title: "My patients",
-        url: "/my-patients",
-        icon: UsersIcon,
-      },
+      // {
+      //   title: "My patients",
+      //   url: "/my-patients",
+      //   icon: UsersIcon,
+      // },
       {
         title: "My prescriptions",
         url: "/my-prescriptions",
