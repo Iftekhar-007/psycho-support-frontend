@@ -186,6 +186,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { authClient } from "@/lib/auth-client";
+import { CreatePrescriptionDialog } from "../prescription/create-prescription-dialog";
 
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -199,7 +200,9 @@ const STATUS_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
 
 export default function MyAppointments() {
   const { data: session } = authClient.useSession();
-  const isPsychologist = session?.user?.role === "psychologist";
+  // const isPsychologist = session?.user?.role === "psychologist";
+
+  const isPsychologist = session?.user?.role?.toUpperCase() === "PSYCHOLOGIST";
 
   const [appointments, setAppointments] = useState<any[]>([]);
 
@@ -208,6 +211,41 @@ export default function MyAppointments() {
   const [error, setError] = useState<{ id: string; message: string } | null>(
     null,
   );
+
+  const [payingId, setPayingId] = useState<string | null>(null);
+
+  const handlePay = async (appointmentId: string) => {
+    setPayingId(appointmentId);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/v1/payment/initiate/${appointmentId}`,
+        { method: "POST", credentials: "include" },
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to start payment");
+      }
+
+      window.location.href = data.data.checkoutUrl; // redirect to Stripe
+    } catch (err: any) {
+      setError({ id: appointmentId, message: err.message });
+      setPayingId(null);
+    }
+  };
+
+  const canPrescribe = (appointment: any) =>
+    isPsychologist &&
+    appointment.appointmentStatus === "CONFIRMED" &&
+    new Date(appointment.date) <= new Date();
+
+  const handlePrescriptionCreated = (appointmentId: string) => {
+    setAppointments((prev) =>
+      prev.map((a) =>
+        a.id === appointmentId ? { ...a, appointmentStatus: "COMPLETED" } : a,
+      ),
+    );
+  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -297,6 +335,8 @@ export default function MyAppointments() {
 
   if (loading) return <p>Loading...</p>;
 
+  console.log("SESSION DEBUG:", JSON.stringify(session, null, 2));
+
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       {appointments.map((appointment: any) => {
@@ -368,6 +408,13 @@ export default function MyAppointments() {
                 <Badge variant={getStatusVariant(appointment.paymentStatus)}>
                   Payment Status: {appointment.paymentStatus}
                 </Badge>
+
+                {canPrescribe(appointment) && (
+                  <CreatePrescriptionDialog
+                    appointmentId={appointment.id}
+                    onCreated={handlePrescriptionCreated}
+                  />
+                )}
               </div>
 
               {isPsychologist && availableStatuses.length > 0 && (
@@ -404,7 +451,35 @@ export default function MyAppointments() {
                   )}
                 </div>
               )}
+
+              {!isPsychologist && appointment.paymentStatus !== "COMPLETED" && (
+                <Button
+                  onClick={() => handlePay(appointment.id)}
+                  disabled={payingId === appointment.id}
+                >
+                  {payingId === appointment.id ? "Redirecting..." : "Pay Now"}
+                </Button>
+              )}
             </CardContent>
+
+            <p className="text-xs text-muted-foreground">
+              {appointment.appointmentStatus} |{" "}
+              {new Date(appointment.date).toString()} | now:{" "}
+              {new Date().toString()}
+            </p>
+
+            {/* {canPrescribe(appointment) && (
+              <CreatePrescriptionDialog
+                appointmentId={appointment.id}
+                onCreated={handlePrescriptionCreated}
+              />
+            )} */}
+
+            {/* {canPrescribe(appointment) && (
+              <div style={{ background: "red", padding: "8px" }}>
+                PRESCRIBE BUTTON HERE
+              </div>
+            )} */}
 
             <CardFooter className="flex justify-between">
               <Button variant="outline">View Details</Button>
