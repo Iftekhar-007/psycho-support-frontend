@@ -54,7 +54,7 @@ export function CreatePrescriptionDialog({
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/v1/prescription/create-prescription",
+        "BACKEND_API_URL/api/v1/prescription/create-prescription",
         {
           method: "POST",
           credentials: "include",

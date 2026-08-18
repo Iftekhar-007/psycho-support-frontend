@@ -6,7 +6,7 @@ export const getMyProfile = async (): Promise<MyProfileResponse | null> => {
   const cookieStore = await cookies();
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000"}/api/v1/user/me`,
+    `${process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL"}/api/v1/user/me`,
     {
       headers: {
         Cookie: cookieStore.toString(),

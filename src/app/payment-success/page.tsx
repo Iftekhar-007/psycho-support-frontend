@@ -16,10 +16,9 @@ export default function PaymentSuccess() {
 
     let attempts = 0;
     const poll = async () => {
-      const res = await fetch(
-        "http://localhost:5000/api/v1/payment/my-payments",
-        { credentials: "include" },
-      );
+      const res = await fetch("BACKEND_API_URL/api/v1/payment/my-payments", {
+        credentials: "include",
+      });
       const data = await res.json();
       const payment = data.data?.find?.(
         (p: any) => p.appointmentId === appointmentId,

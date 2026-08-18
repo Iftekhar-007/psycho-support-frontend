@@ -41,7 +41,7 @@ interface BookAppointmentDialogProps {
 }
 
 const DURATION_OPTIONS = [30, 60, 90];
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL";
 
 const BookAppointmentDialog = ({
   psychologistId,

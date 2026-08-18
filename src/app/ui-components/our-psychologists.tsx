@@ -23,8 +23,7 @@ interface ApiResponse {
   data: Psychologist[];
 }
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL/api/v1";
 const MAX_DISPLAY = 4;
 
 const getFallbackPhoto = (seed: string) =>

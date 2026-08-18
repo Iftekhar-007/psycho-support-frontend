@@ -47,7 +47,7 @@
 //     const fetchAppointments = async () => {
 //       try {
 //         const res = await fetch(
-//           "http://localhost:5000/api/v1/appointment/my-appointments",
+//           "BACKEND_API_URL/api/v1/appointment/my-appointments",
 //           {
 //             credentials: "include",
 //           },
@@ -218,7 +218,7 @@ export default function MyAppointments() {
     setPayingId(appointmentId);
     try {
       const res = await fetch(
-        `http://localhost:5000/api/v1/payment/initiate/${appointmentId}`,
+        `BACKEND_API_URL/api/v1/payment/initiate/${appointmentId}`,
         { method: "POST", credentials: "include" },
       );
       const data = await res.json();
@@ -284,7 +284,7 @@ export default function MyAppointments() {
     const fetchAppointments = async () => {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/v1/appointment/my-appointments",
+          "BACKEND_API_URL/api/v1/appointment/my-appointments",
           { credentials: "include" },
         );
         const data = await res.json();
@@ -308,7 +308,7 @@ export default function MyAppointments() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/v1/appointment/update-appointment-status/${appointmentId}`,
+        `BACKEND_API_URL/api/v1/appointment/update-appointment-status/${appointmentId}`,
         {
           method: "PATCH",
           credentials: "include",

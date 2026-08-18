@@ -26,7 +26,7 @@ export default function MyPrescriptions() {
     const fetchPrescriptions = async () => {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/v1/prescription/my-prescriptions",
+          "BACKEND_API_URL/api/v1/prescription/my-prescriptions",
           { credentials: "include" },
         );
         const data = await res.json();
