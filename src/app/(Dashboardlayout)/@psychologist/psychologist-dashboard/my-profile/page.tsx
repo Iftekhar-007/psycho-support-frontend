@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import MyProfile from "@/app/ui-components/profile/my-profile";
 import { getMyProfile } from "@/lib/getMyProfile";
 import { MyProfileResponse } from "@/types/profiles";

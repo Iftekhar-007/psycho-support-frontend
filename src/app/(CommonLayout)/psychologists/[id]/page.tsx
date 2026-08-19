@@ -51,13 +51,13 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ??
   "https://psychology-support-backend.vercel.app/api/v1";
 
+export const revalidate = 60
+
 const getPsychologist = async (
   id: string,
 ): Promise<PsychologistDetail | null> => {
   try {
-    const res = await fetch(`${API_URL}/psychologist/${id}`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(`${API_URL}/psychologist/${id}`);
     if (!res.ok) return null;
     const json: ApiResponse = await res.json();
     return json.data ?? null;
@@ -65,6 +65,22 @@ const getPsychologist = async (
     return null;
   }
 };
+
+interface PsychologistsListResponse {
+  success: boolean;
+  data: { id: string }[];
+}
+
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_URL}/psychologist/all-psychologists`);
+    if (!res.ok) return [];
+    const json: PsychologistsListResponse = await res.json();
+    return json.data?.map((p) => ({ id: p.id })) ?? [];
+  } catch {
+    return [];
+  }
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
