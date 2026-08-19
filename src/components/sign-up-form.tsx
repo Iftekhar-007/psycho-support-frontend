@@ -139,7 +139,7 @@ const SignUpForm = () => {
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link
-          href="/sign-in"
+          href="/auth/sign-in"
           className="font-medium text-[#0f1f1c] underline underline-offset-2"
         >
           Sign in

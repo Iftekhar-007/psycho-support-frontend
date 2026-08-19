@@ -15,6 +15,29 @@ const SignInForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setError(null);
+  //   setLoading(true);
+
+  //   const formData = new FormData(e.currentTarget);
+
+  //   const { error } = await authClient.signIn.email({
+  //     email: formData.get("email") as string,
+  //     password: formData.get("password") as string,
+  //   });
+
+  //   setLoading(false);
+
+  //   if (error) {
+  //     setError(error.message ?? "Invalid email or password.");
+  //     return;
+  //   }
+
+  //   router.push("/dashboard");
+  //   router.refresh();
+  // };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -22,22 +45,26 @@ const SignInForm = () => {
 
     const formData = new FormData(e.currentTarget);
 
-    const { error } = await authClient.signIn.email({
+    const result = await authClient.signIn.email({
       email: formData.get("email") as string,
       password: formData.get("password") as string,
     });
 
+    console.log("🔥 LOGIN RESULT:", result);
+
     setLoading(false);
 
-    if (error) {
-      setError(error.message ?? "Invalid email or password.");
+    if (result.error) {
+      console.error("❌ LOGIN ERROR:", result.error);
+      setError(result.error.message ?? "Invalid email or password.");
       return;
     }
+
+    console.log("✅ LOGIN SUCCESS:", result.data);
 
     router.push("/dashboard");
     router.refresh();
   };
-
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
