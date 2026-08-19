@@ -5,9 +5,12 @@ import { cookies } from "next/headers";
 export const getMyProfile = async (): Promise<MyProfileResponse | null> => {
   const cookieStore = await cookies();
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL ?? "https://psychology-support-backend.vercel.app"}/api/v1/user/me`,
-    {
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://psychology-support-backend.vercel.app";
+
+  const res = await fetch(`${backendUrl}/api/v1/user/me`, {
       headers: {
         Cookie: cookieStore.toString(),
       },
