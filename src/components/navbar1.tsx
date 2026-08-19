@@ -1,15 +1,24 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { LogOut, Menu, User } from "lucide-react";
-import { useRouter } from "next/navigation";
-
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  LogOut,
+  Menu,
+  User,
+  Sparkles,
+  LayoutDashboard,
+  Calendar,
+  FileText,
+  HeartHandshake,
+  Shield,
+  ArrowRight,
+  Stethoscope,
+  Info,
+  BookOpen,
+} from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,14 +31,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -39,46 +40,26 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 
 interface MenuItem {
   title: string;
   url: string;
-  description?: string;
-  icon?: React.ReactNode;
-  items?: MenuItem[];
+  icon: React.ComponentType<{ className?: string }>;
 }
 
-interface Navbar1Props {
-  className?: string;
-  logo?: {
-    url: string;
-    src: string;
-    alt: string;
-    title: string;
-    className?: string;
-  };
-  menu?: MenuItem[];
-  auth?: {
-    login: {
-      title: string;
-      url: string;
-    };
-    signup: {
-      title: string;
-      url: string;
-    };
-  };
-}
+const navItems: MenuItem[] = [
+  { title: "Home", url: "/", icon: Sparkles },
+  { title: "About", url: "/about", icon: Info },
+  { title: "Psychologists", url: "/psychologists", icon: Stethoscope },
+  { title: "Blog", url: "/blog", icon: BookOpen },
+];
 
 type SessionUser = {
+  id?: string;
   name: string;
   email: string;
   image?: string | null;
   role?: "PATIENT" | "PSYCHOLOGIST" | "ADMIN";
-  // TODO: replace with real fields once you wire up profile-check logic
-  hasPatientProfile?: boolean;
-  hasPsychologistProfile?: boolean;
 };
 
 const getInitials = (name?: string | null) => {
@@ -91,38 +72,9 @@ const getInitials = (name?: string | null) => {
     .join("");
 };
 
-const Navbar1 = ({
-  logo = {
-    url: "https://www.shadcnblocks.com",
-    src: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/logos/shadcnblockscom-icon.svg",
-    alt: "logo",
-    title: "Shadcnblocks.com",
-  },
-  menu = [
-    { title: "Home", url: "/" },
-
-    {
-      title: "About",
-      url: "/about",
-    },
-    { title: "Psychologists", url: "/psychologists" },
-
-    {
-      title: "Blog",
-      url: "/blog",
-    },
-    // {
-    //   title: "Dashboard",
-    //   url: "/dashboard",
-    // },
-  ],
-  auth = {
-    login: { title: "Login", url: "/auth/sign-in" },
-    signup: { title: "Sign up", url: "/auth/sign-up" },
-  },
-  className,
-}: Navbar1Props) => {
+export const Navbar1 = ({ className }: { className?: string }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
 
   const [userStatus, setUserStatus] = useState<{
@@ -131,22 +83,29 @@ const Navbar1 = ({
     hasPsychologistProfile: boolean;
   } | null>(null);
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   const user = session?.user as SessionUser | undefined;
 
   useEffect(() => {
     if (!session) return;
 
     const getStatus = async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/user/me/status`,
-        {
-          credentials: "include",
-        },
-      );
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL ?? "https://psychology-support-backend.vercel.app"}/api/v1/user/me/status`,
+          {
+            credentials: "include",
+          }
+        );
 
-      const data = await res.json();
-
-      setUserStatus(data.data);
+        if (res.ok) {
+          const data = await res.json();
+          setUserStatus(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user status:", err);
+      }
     };
 
     getStatus();
@@ -167,323 +126,342 @@ const Navbar1 = ({
   };
 
   const handleSignOut = async () => {
-    await authClient.signOut();
-    router.push("/");
-    router.refresh();
+    try {
+      await authClient.signOut();
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
   };
 
   return (
-    <section className={cn("py-4", className)}>
-      <div className="max-w-10/12 mx-auto">
-        {/* Desktop Menu */}
-        <nav className="hidden items-center justify-between lg:flex">
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-              <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b border-border/40 bg-background/85 backdrop-blur-xl supports-backdrop-filter:bg-background/70 transition-all",
+        className
+      )}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4">
+          {/* Logo & Brand */}
+          <Link href="/" className="flex items-center gap-2.5 group transition-transform">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#0d221c] to-[#1a4035] text-white shadow-xs group-hover:scale-105 transition-transform">
+              <HeartHandshake className="size-5 text-emerald-300" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base font-bold tracking-tight text-foreground leading-none flex items-center gap-1.5">
+                MindCare
+                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded-sm bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                  Care
+                </span>
               </span>
-            </a>
-            <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
+              <span className="text-[11px] text-muted-foreground font-medium">
+                Psychology Support
+              </span>
             </div>
-          </div>
+          </Link>
 
-          {isPending ? (
-            <Skeleton className="size-9 rounded-full" />
-          ) : session ? (
-            <div className="flex items-center gap-3">
-              {showCreatePatientProfile && (
-                <Button size="sm" onClick={handleCreateProfile}>
-                  Create Patient Profile
-                </Button>
-              )}
-              {showCreatePsychologistProfile && (
-                <Button size="sm" onClick={handleCreateProfile}>
-                  Create Psychologist Profile
-                </Button>
-              )}
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const isActive =
+                item.url === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.url);
+              return (
+                <Link
+                  key={item.url}
+                  href={item.url}
+                  className={cn(
+                    "relative px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150",
+                    isActive
+                      ? "bg-emerald-950/5 dark:bg-emerald-900/20 text-emerald-950 dark:text-emerald-300 font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                  )}
+                >
+                  {item.title}
+                  {isActive && (
+                    <span className="absolute bottom-1 left-3.5 right-3.5 h-0.5 bg-emerald-800 dark:bg-emerald-400 rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger className="outline-none">
-                  <Avatar className="size-9 cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/50">
-                    <AvatarImage
-                      src={session.user.image ?? undefined}
-                      alt={session.user.name}
-                    />
-                    <AvatarFallback className="text-sm">
-                      {getInitials(session.user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>
-                      <p className="truncate font-medium">
-                        {session.user.name}
-                      </p>
-                      <p className="truncate text-xs font-normal text-muted-foreground">
-                        {session.user.email}
-                      </p>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      render={
-                        <a
-                          href="/dashboard"
-                          className="flex items-center gap-2"
-                        />
-                      }
-                    >
-                      <User className="size-4" />
-                      Dashboard
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleSignOut}
-                      className="flex items-center gap-2 text-destructive focus:text-destructive"
-                    >
-                      <LogOut className="size-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                render={<a href={auth.login.url} />}
-                nativeButton={false}
-              >
-                {auth.login.title}
-              </Button>
-              <Button
-                size="sm"
-                render={<a href={auth.signup.url} />}
-                nativeButton={false}
-              >
-                {auth.signup.title}
-              </Button>
-            </div>
-          )}
-        </nav>
+          {/* Desktop Auth / User Controls */}
+          <div className="hidden md:flex items-center gap-3">
+            {isPending ? (
+              <Skeleton className="size-9 rounded-full" />
+            ) : session ? (
+              <div className="flex items-center gap-3">
+                {showCreatePatientProfile && (
+                  <Button
+                    size="sm"
+                    onClick={handleCreateProfile}
+                    className="h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
+                  >
+                    <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
+                    Complete Patient Profile
+                  </Button>
+                )}
 
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-            </a>
+                {showCreatePsychologistProfile && (
+                  <Button
+                    size="sm"
+                    onClick={handleCreateProfile}
+                    className="h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
+                  >
+                    <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
+                    Complete Provider Profile
+                  </Button>
+                )}
 
-            <div className="flex items-center gap-3">
-              {!isPending && showCreatePatientProfile && (
-                <Button size="sm" onClick={handleCreateProfile}>
-                  Create Patient
-                </Button>
-              )}
-              {!isPending && showCreatePsychologistProfile && (
-                <Button size="sm" onClick={handleCreateProfile}>
-                  Create Psychologist
-                </Button>
-              )}
-
-              {!isPending && session && (
                 <DropdownMenu>
                   <DropdownMenuTrigger className="outline-none">
-                    <Avatar className="size-9 cursor-pointer ring-2 ring-transparent transition-all hover:ring-primary/50">
+                    <Avatar className="size-9 cursor-pointer ring-2 ring-emerald-800/20 hover:ring-emerald-800/50 transition-all">
                       <AvatarImage
                         src={session.user.image ?? undefined}
                         alt={session.user.name}
                       />
-                      <AvatarFallback className="text-sm">
+                      <AvatarFallback className="bg-emerald-950 text-white text-xs font-semibold">
                         {getInitials(session.user.name)}
                       </AvatarFallback>
                     </Avatar>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>
-                        <p className="truncate font-medium">
-                          {session.user.name}
-                        </p>
-                        <p className="truncate text-xs font-normal text-muted-foreground">
+
+                  <DropdownMenuContent align="end" className="w-60 p-2 rounded-2xl shadow-xl">
+                    <DropdownMenuLabel className="p-2">
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold leading-none text-foreground truncate max-w-[150px]">
+                            {session.user.name}
+                          </p>
+                          {user?.role && (
+                            <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                              {user.role}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
                           {session.user.email}
                         </p>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
+                      </div>
+                    </DropdownMenuLabel>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    <DropdownMenuGroup>
                       <DropdownMenuItem
-                        render={
-                          <a
-                            href="/dashboard"
-                            className="flex items-center gap-2"
-                          />
-                        }
+                        onClick={() => router.push("/dashboard")}
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
                       >
-                        <User className="size-4" />
+                        <LayoutDashboard className="size-4 text-emerald-800 dark:text-emerald-400" />
                         Dashboard
                       </DropdownMenuItem>
+
                       <DropdownMenuItem
-                        onClick={handleSignOut}
-                        className="flex items-center gap-2 text-destructive focus:text-destructive"
+                        onClick={() => router.push("/dashboard/my-appointments")}
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
                       >
-                        <LogOut className="size-4" />
-                        Sign Out
+                        <Calendar className="size-4 text-muted-foreground" />
+                        My Appointments
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => router.push("/my-prescriptions")}
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                      >
+                        <FileText className="size-4 text-muted-foreground" />
+                        Prescriptions
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    <DropdownMenuItem
+                      onClick={handleSignOut}
+                      className="rounded-xl cursor-pointer py-2 text-sm gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                    >
+                      <LogOut className="size-4" />
+                      Sign Out
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push("/auth/sign-in")}
+                  className="h-9 px-4 rounded-xl text-sm font-medium hover:bg-muted/70 cursor-pointer"
+                >
+                  Sign In
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => router.push("/auth/sign-up")}
+                  className="h-9 px-4 rounded-xl bg-[#0f241d] hover:bg-[#18392e] text-white text-sm font-medium shadow-xs hover:shadow-md transition-all cursor-pointer"
+                >
+                  Get Started
+                  <ArrowRight className="size-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
+          </div>
 
-              <Sheet>
-                <SheetTrigger render={<Button variant="outline" size="icon" />}>
-                  <Menu className="size-4" />
-                </SheetTrigger>
-                <SheetContent className="overflow-y-auto">
-                  <SheetHeader>
+          {/* Mobile Menu Trigger */}
+          <div className="flex items-center gap-2 md:hidden">
+            {!isPending && session && (
+              <Avatar className="size-8 ring-2 ring-emerald-800/20">
+                <AvatarImage src={session.user.image ?? undefined} alt={session.user.name} />
+                <AvatarFallback className="bg-emerald-950 text-white text-[11px]">
+                  {getInitials(session.user.name)}
+                </AvatarFallback>
+              </Avatar>
+            )}
+
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-9 rounded-xl border-border/80"
+                  />
+                }
+              >
+                <Menu className="size-5" />
+              </SheetTrigger>
+
+              <SheetContent side="right" className="w-[300px] sm:w-[360px] p-6 flex flex-col justify-between">
+                <div>
+                  <SheetHeader className="mb-6 text-left">
                     <SheetTitle>
-                      <a href={logo.url} className="flex items-center gap-2">
-                        <img
-                          src={logo.src}
-                          className="max-h-8 dark:invert"
-                          alt={logo.alt}
-                        />
-                      </a>
+                      <Link
+                        href="/"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2.5"
+                      >
+                        <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-950 text-white">
+                          <HeartHandshake className="size-4 text-emerald-300" />
+                        </div>
+                        <div>
+                          <p className="text-base font-bold text-foreground leading-none">
+                            MindCare
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Psychology Platform
+                          </p>
+                        </div>
+                      </Link>
                     </SheetTitle>
                   </SheetHeader>
-                  <div className="flex flex-col gap-6 p-4">
-                    <Accordion
-                      // type="single"
-                      // collapsible
-                      className="flex w-full flex-col gap-4"
-                    >
-                      {menu.map((item) => renderMobileMenuItem(item))}
-                    </Accordion>
 
-                    {!isPending && !session && (
-                      <div className="flex flex-col gap-3">
-                        <Button
-                          variant="outline"
-                          render={<a href={auth.login.url} />}
-                          nativeButton={false}
+                  {/* Mobile Navigation List */}
+                  <div className="flex flex-col gap-1">
+                    {navItems.map((item) => {
+                      const Icon = item.icon;
+                      const isActive =
+                        item.url === "/"
+                          ? pathname === "/"
+                          : pathname.startsWith(item.url);
+                      return (
+                        <Link
+                          key={item.url}
+                          href={item.url}
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                            isActive
+                              ? "bg-emerald-950/10 text-emerald-900 dark:text-emerald-300 font-semibold"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          )}
                         >
-                          {auth.login.title}
-                        </Button>
-                        <Button
-                          render={<a href={auth.signup.url} />}
-                          nativeButton={false}
-                        >
-                          {auth.signup.title}
-                        </Button>
-                      </div>
-                    )}
+                          <Icon className="size-4" />
+                          {item.title}
+                        </Link>
+                      );
+                    })}
+                  </div>
 
-                    {!isPending && session && (
+                  {session && (
+                    <div className="mt-6 pt-6 border-t border-border/60 flex flex-col gap-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3.5 mb-1">
+                        My Account
+                      </p>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      >
+                        <LayoutDashboard className="size-4 text-emerald-800 dark:text-emerald-400" />
+                        Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/my-appointments"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      >
+                        <Calendar className="size-4" />
+                        Appointments
+                      </Link>
+                      <Link
+                        href="/my-prescriptions"
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      >
+                        <FileText className="size-4" />
+                        Prescriptions
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile Bottom Actions */}
+                <div className="pt-6 border-t border-border/60 space-y-3">
+                  {!session ? (
+                    <div className="flex flex-col gap-2">
                       <Button
                         variant="outline"
-                        onClick={handleSignOut}
-                        className="flex items-center gap-2 text-destructive"
+                        onClick={() => {
+                          setMobileOpen(false);
+                          router.push("/auth/sign-in");
+                        }}
+                        className="w-full h-10 rounded-xl"
                       >
-                        <LogOut className="size-4" />
-                        Sign Out
+                        Sign In
                       </Button>
-                    )}
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
+                      <Button
+                        onClick={() => {
+                          setMobileOpen(false);
+                          router.push("/auth/sign-up");
+                        }}
+                        className="w-full h-10 rounded-xl bg-[#0f241d] hover:bg-[#18392e] text-white"
+                      >
+                        Get Started
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        handleSignOut();
+                      }}
+                      className="w-full h-10 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive gap-2"
+                    >
+                      <LogOut className="size-4" />
+                      Sign Out
+                    </Button>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
-    </section>
+    </header>
   );
 };
-
-const renderMenuItem = (item: MenuItem) => {
-  if (item.items) {
-    return (
-      <NavigationMenuItem key={item.title}>
-        <NavigationMenuTrigger>{item.title}</NavigationMenuTrigger>
-        <NavigationMenuContent className="bg-popover text-popover-foreground">
-          {item.items.map((subItem) => (
-            <NavigationMenuLink
-              key={subItem.title}
-              className="w-80"
-              render={<SubMenuLink item={subItem} />}
-            ></NavigationMenuLink>
-          ))}
-        </NavigationMenuContent>
-      </NavigationMenuItem>
-    );
-  }
-
-  return (
-    <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
-      >
-        {item.title}
-      </NavigationMenuLink>
-    </NavigationMenuItem>
-  );
-};
-
-const renderMobileMenuItem = (item: MenuItem) => {
-  if (item.items) {
-    return (
-      <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
-          {item.title}
-        </AccordionTrigger>
-        <AccordionContent className="mt-2">
-          {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
-          ))}
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
-
-  return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
-      {item.title}
-    </a>
-  );
-};
-
-const SubMenuLink = ({ item }: { item: MenuItem }) => {
-  return (
-    <a
-      className="flex min-w-80 flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-muted hover:text-accent-foreground"
-      href={item.url}
-    >
-      <div className="text-foreground">{item.icon}</div>
-      <div>
-        <div className="text-sm font-semibold">{item.title}</div>
-        {item.description && (
-          <p className="text-sm leading-snug text-muted-foreground">
-            {item.description}
-          </p>
-        )}
-      </div>
-    </a>
-  );
-};
-
-export { Navbar1 };

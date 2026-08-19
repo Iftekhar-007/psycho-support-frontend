@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   FaFacebook,
   FaGithub,
@@ -5,156 +6,195 @@ import {
   FaLinkedin,
   FaTwitter,
 } from "react-icons/fa";
-import { Logo, LogoImageDesktop, LogoImageMobile } from "@/components/logo";
-
+import {
+  HeartHandshake,
+  ShieldCheck,
+  PhoneCall,
+  Lock,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FooterLink {
   name: string;
   href: string;
 }
+
 interface FooterSection {
   title: string;
   links: FooterLink[];
 }
-interface FooterLogo {
-  url: string;
-  src: string;
-  alt: string;
-  title: string;
-}
 
-interface FooterBasicProps {
-  logo?: FooterLogo;
-  description?: string;
-  sections?: FooterSection[];
-  copyright?: string;
-  legalLinks?: FooterLink[];
-  className?: string;
-}
-
-interface Footer2Props extends FooterBasicProps {
-  logoClassName?: string;
-}
-type Props = Partial<Footer2Props>;
-
-const defaultProps: Footer2Props = {
-  logo: {
-    url: "https://www.shadcnblocks.com",
-    src: "/images/logo/shadcnblocks-logo-word.svg",
-    alt: "logo",
-    title: "Shadcnblocks.com",
+const footerSections: FooterSection[] = [
+  {
+    title: "Care & Services",
+    links: [
+      { name: "Find Psychologists", href: "/psychologists" },
+      { name: "Book an Appointment", href: "/psychologists" },
+      { name: "Individual Counseling", href: "/about" },
+      { name: "CBT & Clinical Therapy", href: "/about" },
+      { name: "Prescription Care", href: "/dashboard" },
+    ],
   },
-  description: "Finely crafted blocks built with Shadcn UI.",
-  sections: [
-    {
-      title: "Product",
-      links: [
-        { name: "Overview", href: "#" },
-        { name: "Pricing", href: "#" },
-        { name: "Marketplace", href: "#" },
-        { name: "Features", href: "#" },
-        { name: "Integrations", href: "#" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { name: "About", href: "#" },
-        { name: "Team", href: "#" },
-        { name: "Blog", href: "#" },
-        { name: "Careers", href: "#" },
-        { name: "Contact", href: "#" },
-      ],
-    },
-    {
-      title: "Support",
-      links: [
-        { name: "Help center", href: "#" },
-        { name: "Documentation", href: "#" },
-        { name: "Status", href: "#" },
-        { name: "Community", href: "#" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { name: "Guides", href: "#" },
-        { name: "Templates", href: "#" },
-        { name: "Sales", href: "#" },
-        { name: "Advertise", href: "#" },
-      ],
-    },
-  ],
-  copyright: "© 2024 Shadcnblocks.com. All rights reserved.",
-  legalLinks: [
-    { name: "Terms and Conditions", href: "#" },
-    { name: "Privacy Policy", href: "#" },
-  ],
-};
+  {
+    title: "About MindCare",
+    links: [
+      { name: "Our Story & Mission", href: "/about" },
+      { name: "Verified Specialists", href: "/psychologists" },
+      { name: "Clinical Advisory Board", href: "/about" },
+      { name: "Mental Health Blog", href: "/blog" },
+      { name: "Join as a Practitioner", href: "/auth/sign-up" },
+    ],
+  },
+  {
+    title: "Resources & Support",
+    links: [
+      { name: "Crisis Hotline Directory", href: "#crisis-banner" },
+      { name: "Patient FAQs", href: "/about" },
+      { name: "Wellness Articles", href: "/blog" },
+      { name: "Support Center", href: "/about" },
+      { name: "Telehealth Guide", href: "/about" },
+    ],
+  },
+  {
+    title: "Trust & Compliance",
+    links: [
+      { name: "HIPAA Compliant Care", href: "#" },
+      { name: "256-Bit Data Encryption", href: "#" },
+      { name: "Privacy Policy", href: "#" },
+      { name: "Terms of Service", href: "#" },
+      { name: "Patient Rights & Safety", href: "#" },
+    ],
+  },
+];
 
-const MAX_SECTIONS = 4;
+const socialLinks = [
+  { icon: FaTwitter, href: "https://twitter.com", label: "Twitter" },
+  { icon: FaLinkedin, href: "https://linkedin.com", label: "LinkedIn" },
+  { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
+  { icon: FaFacebook, href: "https://facebook.com", label: "Facebook" },
+  { icon: FaGithub, href: "https://github.com", label: "GitHub" },
+];
 
-const Footer2 = (props: Props) => {
-  const { logo, description, sections, copyright, legalLinks, className } = {
-    ...defaultProps,
-    ...props,
-  };
-
-  const visibleSections = (sections ?? []).slice(0, MAX_SECTIONS);
-
+export const Footer2 = ({ className }: { className?: string }) => {
   return (
-    <section className={cn("py-32", className)}>
-      <div className="max-w-full">
-        <footer className="">
-          <div className="max-w-10/12 mx-auto grid grid-cols-2 gap-8 lg:grid-cols-6">
-            <div className="col-span-2 mb-8 lg:mb-0">
-              <div className="flex items-center lg:justify-start">
-                <a href={logo?.url}>
-                  <img
-                    src={logo?.src}
-                    alt={logo?.alt}
-                    title={logo?.title}
-                    className="h-7 dark:invert"
-                  />
-                </a>
-              </div>
-              <p className="mt-4 text-sm font-medium text-muted-foreground">
-                {description}
+    <footer className={cn("border-t border-border/40 bg-muted/20 text-foreground pt-16 pb-12", className)}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Emergency Crisis Hotline Banner */}
+        <div
+          id="crisis-banner"
+          className="mb-14 rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-3.5">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+              <PhoneCall className="size-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-rose-950 dark:text-rose-200">
+                Immediate Crisis or Emergency Support
+              </p>
+              <p className="text-xs text-rose-800/80 dark:text-rose-300/80 leading-relaxed mt-0.5">
+                If you or someone you care about is experiencing thoughts of suicide or a medical emergency,
+                please call <strong>988</strong> (Suicide & Crisis Lifeline in the US) or your local emergency number immediately.
               </p>
             </div>
-            {visibleSections.map((section, sectionIdx) => (
-              <div key={sectionIdx}>
-                <h3 className="mb-4 text-sm font-semibold tracking-tight">
-                  {section.title}
-                </h3>
-                <ul className="space-y-4 text-sm text-muted-foreground">
-                  {section.links.map((link, linkIdx) => (
-                    <li
-                      key={linkIdx}
-                      className="font-medium hover:text-primary"
-                    >
-                      <a href={link.href}>{link.name}</a>
-                    </li>
-                  ))}
-                </ul>
+          </div>
+          <div className="shrink-0">
+            <a
+              href="tel:988"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              <PhoneCall className="size-3.5" />
+              Call 988 Lifeline
+            </a>
+          </div>
+        </div>
+
+        {/* Main Footer Content Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8 pb-12 border-b border-border/60">
+          {/* Brand Col */}
+          <div className="lg:col-span-2 space-y-4">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-xl bg-[#0f241d] text-white shadow-xs">
+                <HeartHandshake className="size-5 text-emerald-300" />
               </div>
-            ))}
+              <div className="flex flex-col">
+                <span className="text-base font-bold tracking-tight text-foreground leading-none">
+                  MindCare
+                </span>
+                <span className="text-[11px] text-muted-foreground font-medium">
+                  Psychology Support Platform
+                </span>
+              </div>
+            </Link>
+
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
+              Empowering individuals toward emotional resilience and mental wellness.
+              We connect patients with certified, compassionate psychologists in a safe,
+              confidential, and HIPAA-compliant telehealth environment.
+            </p>
+
+            <div className="flex items-center gap-3 pt-2">
+              {socialLinks.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={idx}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={item.label}
+                    className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground hover:border-emerald-800/40 hover:bg-emerald-950/5 transition-all"
+                  >
+                    <Icon className="size-3.5" />
+                  </a>
+                );
+              })}
+            </div>
           </div>
-          <div className="mt-8 flex flex-col justify-between gap-4 border-t border-border pt-8 text-xs font-medium text-muted-foreground md:flex-row md:items-center">
-            <p>{copyright}</p>
-            <ul className="flex gap-4">
-              {legalLinks?.map((link, linkIdx) => (
-                <li key={linkIdx} className="underline hover:text-primary">
-                  <a href={link.href}>{link.name}</a>
-                </li>
-              ))}
-            </ul>
+
+          {/* Links Columns */}
+          {footerSections.map((section, idx) => (
+            <div key={idx} className="space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                {section.title}
+              </h4>
+              <ul className="space-y-2.5 text-xs text-muted-foreground">
+                {section.links.map((link, linkIdx) => (
+                  <li key={linkIdx}>
+                    <Link
+                      href={link.href}
+                      className="hover:text-emerald-900 dark:hover:text-emerald-300 transition-colors"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Legal & Copyright */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-center sm:text-left">
+            <ShieldCheck className="size-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
+            <span>&copy; {new Date().getFullYear()} MindCare Psychology Support. All rights reserved.</span>
           </div>
-        </footer>
+
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            <Link href="/about" className="hover:text-foreground transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/about" className="hover:text-foreground transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/about" className="hover:text-foreground transition-colors">
+              Cookie Policy
+            </Link>
+          </div>
+        </div>
       </div>
-    </section>
+    </footer>
   );
 };
-
-export { Footer2 };
