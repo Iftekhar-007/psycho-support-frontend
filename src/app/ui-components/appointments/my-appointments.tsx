@@ -218,7 +218,10 @@ export default function MyAppointments() {
     setPayingId(appointmentId);
     try {
       const res = await fetch(
-        `BACKEND_API_URL/api/v1/payment/initiate/${appointmentId}`,
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+          "https://psychology-support-backend.vercel.app"
+        }/api/v1/payment/initiate/${appointmentId}`,
         { method: "POST", credentials: "include" },
       );
       const data = await res.json();
@@ -284,7 +287,10 @@ export default function MyAppointments() {
     const fetchAppointments = async () => {
       try {
         const res = await fetch(
-          "BACKEND_API_URL/api/v1/appointment/my-appointments",
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+            "https://psychology-support-backend.vercel.app"
+          }/api/v1/appointment/my-appointments`,
           { credentials: "include" },
         );
         const data = await res.json();
@@ -308,7 +314,10 @@ export default function MyAppointments() {
 
     try {
       const res = await fetch(
-        `BACKEND_API_URL/api/v1/appointment/update-appointment-status/${appointmentId}`,
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+            "https://psychology-support-backend.vercel.app"
+          }/api/v1/appointment/update-appointment-status/${appointmentId}`,
         {
           method: "PATCH",
           credentials: "include",

@@ -54,7 +54,10 @@ export function CreatePrescriptionDialog({
 
     try {
       const res = await fetch(
-        "BACKEND_API_URL/api/v1/prescription/create-prescription",
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+          "https://psychology-support-backend.vercel.app"
+        }/api/v1/prescription/create-prescription`,
         {
           method: "POST",
           credentials: "include",

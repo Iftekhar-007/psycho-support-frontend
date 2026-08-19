@@ -16,9 +16,13 @@ export default function PaymentSuccess() {
 
     let attempts = 0;
     const poll = async () => {
-      const res = await fetch("BACKEND_API_URL/api/v1/payment/my-payments", {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+          "https://psychology-support-backend.vercel.app"
+        }/api/v1/payment/my-payments`,
+        { credentials: "include" },
+      );
       const data = await res.json();
       const payment = data.data?.find?.(
         (p: any) => p.appointmentId === appointmentId,

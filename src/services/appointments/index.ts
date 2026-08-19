@@ -1,6 +1,6 @@
 export const getMyAppointments = async () => {
   const res = await fetch(
-    "BACKEND_API_URL/api/v1/appointment/my-appointments",
+    "https://psychology-support-backend.vercel.app/api/v1/appointment/my-appointments",
     {
       credentials: "include",
     },

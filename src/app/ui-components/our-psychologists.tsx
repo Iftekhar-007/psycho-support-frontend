@@ -23,7 +23,9 @@ interface ApiResponse {
   data: Psychologist[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL/api/v1";
+const API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+  "https://psychology-support-backend.vercel.app/api/v1";
 const MAX_DISPLAY = 4;
 
 const getFallbackPhoto = (seed: string) =>

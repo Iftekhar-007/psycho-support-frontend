@@ -41,7 +41,9 @@ interface BookAppointmentDialogProps {
 }
 
 const DURATION_OPTIONS = [30, 60, 90];
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL";
+const API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+  "https://psychology-support-backend.vercel.app";
 
 const BookAppointmentDialog = ({
   psychologistId,

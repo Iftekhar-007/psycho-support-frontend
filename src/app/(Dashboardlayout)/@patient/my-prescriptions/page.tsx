@@ -26,7 +26,10 @@ export default function MyPrescriptions() {
     const fetchPrescriptions = async () => {
       try {
         const res = await fetch(
-          "BACKEND_API_URL/api/v1/prescription/my-prescriptions",
+          `${
+            process.env.NEXT_PUBLIC_BACKEND_API_URL ??
+            "https://psychology-support-backend.vercel.app"
+          }/api/v1/prescription/my-prescriptions`,
           { credentials: "include" },
         );
         const data = await res.json();

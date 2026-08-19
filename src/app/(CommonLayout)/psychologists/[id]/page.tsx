@@ -47,7 +47,9 @@ interface ApiResponse {
   data: PsychologistDetail;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "BACKEND_API_URL/api/v1";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://psychology-support-backend.vercel.app/api/v1";
 
 const getPsychologist = async (
   id: string,
