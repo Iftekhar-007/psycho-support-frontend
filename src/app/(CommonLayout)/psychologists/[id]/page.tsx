@@ -47,9 +47,11 @@ interface ApiResponse {
   data: PsychologistDetail;
 }
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ??
-  "https://psychology-support-backend.vercel.app/api/v1";
+const backendUrl =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://psychology-support-backend.vercel.app";
+const API_URL = backendUrl.endsWith("/api/v1") ? backendUrl : `${backendUrl}/api/v1`;
 
 export const revalidate = 60
 

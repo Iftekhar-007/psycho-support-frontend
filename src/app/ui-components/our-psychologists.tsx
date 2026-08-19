@@ -23,9 +23,11 @@ interface ApiResponse {
   data: Psychologist[];
 }
 
-const API_URL =
-  process.env.NEXT_PUBLIC_BACKEND_API_URL ??
-  "https://psychology-support-backend.vercel.app/api/v1";
+const backendUrl =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://psychology-support-backend.vercel.app";
+const API_URL = backendUrl.endsWith("/api/v1") ? backendUrl : `${backendUrl}/api/v1`;
 const MAX_DISPLAY = 4;
 
 const getFallbackPhoto = (seed: string) =>
@@ -43,10 +45,14 @@ const getPsychologists = async (): Promise<Psychologist[]> => {
       // ISR: re-fetch at most every 60s instead of on every request
       next: { revalidate: 60 },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`Failed to fetch psychologists: ${res.status} ${res.statusText}`);
+      return [];
+    }
     const json: ApiResponse = await res.json();
     return json.data ?? [];
-  } catch {
+  } catch (err) {
+    console.error("Error fetching psychologists on home page:", err);
     return [];
   }
 };
