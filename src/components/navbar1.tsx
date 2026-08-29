@@ -97,19 +97,16 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
     const getStatus = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL ?? "https://psychology-support-backend.vercel.app"}/api/v1/user/me/status`,
-          {
-            credentials: "include",
-          }
-        );
+        const res = await fetch("/api/v1/user/me/status", {
+          credentials: "include",
+        });
 
         if (res.ok) {
           const data = await res.json();
           setUserStatus(data.data);
         }
       } catch (err) {
-        console.error("Failed to fetch user status:", err);
+        // Gracefully ignore status error, session role is already available
       }
     };
 
@@ -135,7 +132,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-            router.push("/");
+            router.push("/auth/sign-in");
             router.refresh();
           },
         },
@@ -250,35 +247,37 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent align="end" className="w-64 min-w-[250px] p-2 rounded-2xl shadow-xl border border-border/80 bg-popover">
-                    {/* User Info Header */}
-                    <DropdownMenuLabel className="p-2 font-normal">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="size-10 ring-1 ring-border shrink-0">
-                          <AvatarImage
-                            src={session.user.image ?? undefined}
-                            alt={session.user.name}
-                          />
-                          <AvatarFallback className="bg-emerald-950 text-white text-xs font-semibold">
-                            {getInitials(session.user.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-sm font-semibold text-foreground truncate leading-tight">
-                              {session.user.name}
-                            </span>
-                            {currentRole && (
-                              <span className="shrink-0 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
-                                {currentRole}
+                    {/* User Info Header wrapped in DropdownMenuGroup */}
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel className="p-2 font-normal">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="size-10 ring-1 ring-border shrink-0">
+                            <AvatarImage
+                              src={session.user.image ?? undefined}
+                              alt={session.user.name}
+                            />
+                            <AvatarFallback className="bg-emerald-950 text-white text-xs font-semibold">
+                              {getInitials(session.user.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-sm font-semibold text-foreground truncate leading-tight">
+                                {session.user.name}
                               </span>
-                            )}
+                              {currentRole && (
+                                <span className="shrink-0 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                                  {currentRole}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground truncate leading-tight mt-0.5">
+                              {session.user.email}
+                            </span>
                           </div>
-                          <span className="text-xs text-muted-foreground truncate leading-tight mt-0.5">
-                            {session.user.email}
-                          </span>
                         </div>
-                      </div>
-                    </DropdownMenuLabel>
+                      </DropdownMenuLabel>
+                    </DropdownMenuGroup>
 
                     <DropdownMenuSeparator className="my-1" />
 
