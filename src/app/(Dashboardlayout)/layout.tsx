@@ -9,10 +9,12 @@ import { userService } from "@/services/userService";
 import { redirect } from "next/navigation";
 
 export default async function DashboardLayout({
+  children,
   admin,
   patient,
   psychologist,
 }: {
+  children?: React.ReactNode;
   admin: React.ReactNode;
   patient: React.ReactNode;
   psychologist: React.ReactNode;
@@ -25,21 +27,24 @@ export default async function DashboardLayout({
 
   let content;
 
-  switch (userInfo.role) {
+  const role = userInfo.role?.toUpperCase();
+
+  switch (role) {
     case "ADMIN":
-      content = admin;
+      content = admin || children;
       break;
 
     case "PSYCHOLOGIST":
-      content = psychologist;
+      content = psychologist || children;
       break;
 
     case "PATIENT":
-      content = patient;
+      content = patient || children;
       break;
 
     default:
-      redirect("/auth/sign-in");
+      content = patient || children || admin || psychologist;
+      break;
   }
 
   return (

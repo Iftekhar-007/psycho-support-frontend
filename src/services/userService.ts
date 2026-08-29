@@ -9,10 +9,14 @@ export const userService = {
   getSession: async function () {
     try {
       const cookieStore = await cookies();
+      const cookieHeader = cookieStore
+        .getAll()
+        .map((c) => `${c.name}=${c.value}`)
+        .join("; ");
 
       const res = await fetch(`${authUrl}/get-session`, {
         headers: {
-          Cookie: cookieStore.toString(),
+          Cookie: cookieHeader,
         },
         cache: "no-store",
       });
