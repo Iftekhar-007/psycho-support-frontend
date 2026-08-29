@@ -1,9 +1,5 @@
-// export const dynamic = "force-dynamic";
+import PatientDashboardDefaultPage from "../default";
 
-import React from "react";
-
-const PatientDashboard = () => {
-  return <div>Hi, welcome back patient</div>;
-};
-
-export default PatientDashboard;
+export default function PatientDashboardPage() {
+  return <PatientDashboardDefaultPage />;
+}

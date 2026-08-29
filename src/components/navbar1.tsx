@@ -86,6 +86,30 @@ export const Navbar1 = ({ className }: { className?: string }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const user = session?.user as SessionUser | undefined;
+  const currentRole = user?.role || userStatus?.role;
+
+  const dashboardUrl =
+    currentRole === "PATIENT"
+      ? "/patient-dashboard"
+      : currentRole === "PSYCHOLOGIST"
+      ? "/psychologist-dashboard"
+      : currentRole === "ADMIN"
+      ? "/admin-dashboard"
+      : "/dashboard";
+
+  const appointmentsUrl =
+    currentRole === "PATIENT"
+      ? "/patient-dashboard/my-appointments"
+      : currentRole === "PSYCHOLOGIST"
+      ? "/psychologist-dashboard/my-appointments"
+      : "/dashboard/my-appointments";
+
+  const profileUrl =
+    currentRole === "PATIENT"
+      ? "/patient-dashboard/my-profile"
+      : currentRole === "PSYCHOLOGIST"
+      ? "/psychologist-dashboard/my-profile"
+      : null;
 
   useEffect(() => {
     if (!session) return;
@@ -118,9 +142,9 @@ export const Navbar1 = ({ className }: { className?: string }) => {
     userStatus?.role === "PSYCHOLOGIST" && !userStatus.hasPsychologistProfile;
 
   const handleCreateProfile = () => {
-    if (user?.role === "PATIENT") {
+    if (currentRole === "PATIENT") {
       router.push("/create-profile/patient");
-    } else if (user?.role === "PSYCHOLOGIST") {
+    } else if (currentRole === "PSYCHOLOGIST") {
       router.push("/create-profile/psychologist");
     }
   };
@@ -237,9 +261,9 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                           <p className="text-sm font-semibold leading-none text-foreground truncate max-w-[150px]">
                             {session.user.name}
                           </p>
-                          {user?.role && (
+                          {currentRole && (
                             <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
-                              {user.role}
+                              {currentRole}
                             </span>
                           )}
                         </div>
@@ -253,7 +277,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
                     <DropdownMenuGroup>
                       <DropdownMenuItem
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push(dashboardUrl)}
                         className="rounded-xl cursor-pointer py-2 text-sm gap-2"
                       >
                         <LayoutDashboard className="size-4 text-emerald-800 dark:text-emerald-400" />
@@ -261,12 +285,22 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
-                        onClick={() => router.push("/dashboard/my-appointments")}
+                        onClick={() => router.push(appointmentsUrl)}
                         className="rounded-xl cursor-pointer py-2 text-sm gap-2"
                       >
                         <Calendar className="size-4 text-muted-foreground" />
                         My Appointments
                       </DropdownMenuItem>
+
+                      {profileUrl && (
+                        <DropdownMenuItem
+                          onClick={() => router.push(profileUrl)}
+                          className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                        >
+                          <User className="size-4 text-muted-foreground" />
+                          My Profile
+                        </DropdownMenuItem>
+                      )}
 
                       <DropdownMenuItem
                         onClick={() => router.push("/my-prescriptions")}
@@ -392,7 +426,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                         My Account
                       </p>
                       <Link
-                        href="/dashboard"
+                        href={dashboardUrl}
                         onClick={() => setMobileOpen(false)}
                         className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       >
@@ -400,13 +434,23 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                         Dashboard
                       </Link>
                       <Link
-                        href="/dashboard/my-appointments"
+                        href={appointmentsUrl}
                         onClick={() => setMobileOpen(false)}
                         className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       >
                         <Calendar className="size-4" />
                         Appointments
                       </Link>
+                      {profileUrl && (
+                        <Link
+                          href={profileUrl}
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        >
+                          <User className="size-4" />
+                          My Profile
+                        </Link>
+                      )}
                       <Link
                         href="/my-prescriptions"
                         onClick={() => setMobileOpen(false)}

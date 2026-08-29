@@ -1,9 +1,5 @@
-// export const dynamic = "force-dynamic";
+import PsychologistDashboardDefaultPage from "../default";
 
-import React from "react";
-
-const PsychologistDashboard = () => {
-  return <div>Hi, Psychologist welcome back</div>;
-};
-
-export default PsychologistDashboard;
+export default function PsychologistDashboardPage() {
+  return <PsychologistDashboardDefaultPage />;
+}
