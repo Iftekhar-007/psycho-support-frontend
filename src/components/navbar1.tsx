@@ -88,28 +88,9 @@ export const Navbar1 = ({ className }: { className?: string }) => {
   const user = session?.user as SessionUser | undefined;
   const currentRole = user?.role || userStatus?.role;
 
-  const dashboardUrl =
-    currentRole === "PATIENT"
-      ? "/patient-dashboard"
-      : currentRole === "PSYCHOLOGIST"
-      ? "/psychologist-dashboard"
-      : currentRole === "ADMIN"
-      ? "/admin-dashboard"
-      : "/dashboard";
-
-  const appointmentsUrl =
-    currentRole === "PATIENT"
-      ? "/patient-dashboard/my-appointments"
-      : currentRole === "PSYCHOLOGIST"
-      ? "/psychologist-dashboard/my-appointments"
-      : "/dashboard/my-appointments";
-
-  const profileUrl =
-    currentRole === "PATIENT"
-      ? "/patient-dashboard/my-profile"
-      : currentRole === "PSYCHOLOGIST"
-      ? "/psychologist-dashboard/my-profile"
-      : null;
+  const dashboardUrl = "/dashboard";
+  const appointmentsUrl = "/dashboard/my-appointments";
+  const profileUrl = null;
 
   useEffect(() => {
     if (!session) return;
