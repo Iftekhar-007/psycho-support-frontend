@@ -151,9 +151,14 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
   const handleSignOut = async () => {
     try {
-      await authClient.signOut();
-      router.push("/");
-      router.refresh();
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/");
+            router.refresh();
+          },
+        },
+      });
     } catch (err) {
       console.error("Sign out error:", err);
     }
@@ -242,7 +247,15 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                 )}
 
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="outline-none">
+                  <DropdownMenuTrigger
+                    render={
+                      <button
+                        type="button"
+                        className="flex items-center rounded-full p-0.5 outline-none transition-all ring-offset-background focus-visible:ring-2 focus-visible:ring-emerald-700/50 hover:opacity-90 cursor-pointer"
+                        aria-label="Open user menu"
+                      />
+                    }
+                  >
                     <Avatar className="size-9 cursor-pointer ring-2 ring-emerald-800/20 hover:ring-emerald-800/50 transition-all">
                       <AvatarImage
                         src={session.user.image ?? undefined}
@@ -254,22 +267,37 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                     </Avatar>
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent align="end" className="w-60 p-2 rounded-2xl shadow-xl">
-                    <DropdownMenuLabel className="p-2">
-                      <div className="flex flex-col space-y-1">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold leading-none text-foreground truncate max-w-[150px]">
-                            {session.user.name}
-                          </p>
-                          {currentRole && (
-                            <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
-                              {currentRole}
+                  <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl shadow-xl">
+                    <DropdownMenuLabel className="p-1 font-normal">
+                      <div
+                        onClick={() => router.push(dashboardUrl)}
+                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/60 transition-colors cursor-pointer"
+                        title="Go to Dashboard"
+                      >
+                        <Avatar className="size-9 ring-1 ring-border shrink-0">
+                          <AvatarImage
+                            src={session.user.image ?? undefined}
+                            alt={session.user.name}
+                          />
+                          <AvatarFallback className="bg-emerald-950 text-white text-xs font-semibold">
+                            {getInitials(session.user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-sm font-semibold text-foreground truncate leading-tight">
+                              {session.user.name}
                             </span>
-                          )}
+                            {currentRole && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                                {currentRole}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate leading-tight mt-0.5">
+                            {session.user.email}
+                          </span>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {session.user.email}
-                        </p>
                       </div>
                     </DropdownMenuLabel>
 
@@ -278,36 +306,46 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                     <DropdownMenuGroup>
                       <DropdownMenuItem
                         onClick={() => router.push(dashboardUrl)}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
                       >
                         <LayoutDashboard className="size-4 text-emerald-800 dark:text-emerald-400" />
-                        Dashboard
+                        <span>Dashboard</span>
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
                         onClick={() => router.push(appointmentsUrl)}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
                       >
                         <Calendar className="size-4 text-muted-foreground" />
-                        My Appointments
+                        <span>My Appointments</span>
                       </DropdownMenuItem>
 
                       {profileUrl && (
                         <DropdownMenuItem
                           onClick={() => router.push(profileUrl)}
-                          className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                          className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
                         >
                           <User className="size-4 text-muted-foreground" />
-                          My Profile
+                          <span>My Profile</span>
+                        </DropdownMenuItem>
+                      )}
+
+                      {currentRole === "ADMIN" && (
+                        <DropdownMenuItem
+                          onClick={() => router.push("/all-users")}
+                          className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                        >
+                          <Shield className="size-4 text-muted-foreground" />
+                          <span>All Users</span>
                         </DropdownMenuItem>
                       )}
 
                       <DropdownMenuItem
                         onClick={() => router.push("/my-prescriptions")}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2"
+                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
                       >
                         <FileText className="size-4 text-muted-foreground" />
-                        Prescriptions
+                        <span>Prescriptions</span>
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
 
@@ -315,10 +353,10 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
                     <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="rounded-xl cursor-pointer py-2 text-sm gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                      className="rounded-xl cursor-pointer py-2 text-sm gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10"
                     >
                       <LogOut className="size-4" />
-                      Sign Out
+                      <span>Sign Out</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -348,12 +386,20 @@ export const Navbar1 = ({ className }: { className?: string }) => {
           {/* Mobile Menu Trigger */}
           <div className="flex items-center gap-2 md:hidden">
             {!isPending && session && (
-              <Avatar className="size-8 ring-2 ring-emerald-800/20">
-                <AvatarImage src={session.user.image ?? undefined} alt={session.user.name} />
-                <AvatarFallback className="bg-emerald-950 text-white text-[11px]">
-                  {getInitials(session.user.name)}
-                </AvatarFallback>
-              </Avatar>
+              <button
+                type="button"
+                onClick={() => router.push(dashboardUrl)}
+                className="flex items-center rounded-full p-0.5 outline-none transition-all ring-offset-background hover:opacity-90 cursor-pointer"
+                title="Go to Dashboard"
+                aria-label="Go to Dashboard"
+              >
+                <Avatar className="size-8 ring-2 ring-emerald-800/20">
+                  <AvatarImage src={session.user.image ?? undefined} alt={session.user.name} />
+                  <AvatarFallback className="bg-emerald-950 text-white text-[11px] font-semibold">
+                    {getInitials(session.user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
             )}
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -421,8 +467,68 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                   </div>
 
                   {session && (
-                    <div className="mt-6 pt-6 border-t border-border/60 flex flex-col gap-1">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3.5 mb-1">
+                    <div className="mt-6 pt-6 border-t border-border/60 flex flex-col gap-2">
+                      {/* Mobile User Profile Card */}
+                      <div
+                        onClick={() => {
+                          setMobileOpen(false);
+                          router.push(dashboardUrl);
+                        }}
+                        className="flex items-center gap-3 p-3 rounded-2xl bg-muted/40 hover:bg-muted/70 transition-colors cursor-pointer border border-border/40 mb-1"
+                        title="Go to Dashboard"
+                      >
+                        <Avatar className="size-10 ring-1 ring-border shrink-0">
+                          <AvatarImage src={session.user.image ?? undefined} alt={session.user.name} />
+                          <AvatarFallback className="bg-emerald-950 text-white text-xs font-semibold">
+                            {getInitials(session.user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-sm font-semibold text-foreground truncate">
+                              {session.user.name}
+                            </span>
+                            {currentRole && (
+                              <span className="shrink-0 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-800 dark:text-emerald-300">
+                                {currentRole}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate mt-0.5">
+                            {session.user.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {showCreatePatientProfile && (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setMobileOpen(false);
+                            handleCreateProfile();
+                          }}
+                          className="w-full h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 mb-1 shadow-xs"
+                        >
+                          <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
+                          Complete Patient Profile
+                        </Button>
+                      )}
+
+                      {showCreatePsychologistProfile && (
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setMobileOpen(false);
+                            handleCreateProfile();
+                          }}
+                          className="w-full h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 mb-1 shadow-xs"
+                        >
+                          <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
+                          Complete Provider Profile
+                        </Button>
+                      )}
+
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3.5 mt-2 mb-1">
                         My Account
                       </p>
                       <Link
@@ -449,6 +555,16 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                         >
                           <User className="size-4" />
                           My Profile
+                        </Link>
+                      )}
+                      {currentRole === "ADMIN" && (
+                        <Link
+                          href="/all-users"
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        >
+                          <Shield className="size-4" />
+                          All Users
                         </Link>
                       )}
                       <Link
