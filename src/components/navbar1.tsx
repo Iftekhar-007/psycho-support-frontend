@@ -199,17 +199,17 @@ export const Navbar1 = ({ className }: { className?: string }) => {
             })}
           </nav>
 
-          {/* Desktop Auth / User Controls */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Desktop & Mobile Auth Controls */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {isPending ? (
               <Skeleton className="size-9 rounded-full" />
             ) : session ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {showCreatePatientProfile && (
                   <Button
                     size="sm"
                     onClick={handleCreateProfile}
-                    className="h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
+                    className="hidden sm:inline-flex h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
                   >
                     <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
                     Complete Patient Profile
@@ -220,13 +220,14 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                   <Button
                     size="sm"
                     onClick={handleCreateProfile}
-                    className="h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
+                    className="hidden sm:inline-flex h-9 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-medium gap-1.5 shadow-xs"
                   >
                     <span className="size-2 rounded-full bg-emerald-300 animate-pulse" />
                     Complete Provider Profile
                   </Button>
                 )}
 
+                {/* User Dropdown Trigger */}
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
@@ -248,14 +249,11 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                     </Avatar>
                   </DropdownMenuTrigger>
 
-                  <DropdownMenuContent align="end" className="w-64 p-2 rounded-2xl shadow-xl">
-                    <DropdownMenuLabel className="p-1 font-normal">
-                      <div
-                        onClick={() => router.push(dashboardUrl)}
-                        className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/60 transition-colors cursor-pointer"
-                        title="Go to Dashboard"
-                      >
-                        <Avatar className="size-9 ring-1 ring-border shrink-0">
+                  <DropdownMenuContent align="end" className="w-64 min-w-[250px] p-2 rounded-2xl shadow-xl border border-border/80 bg-popover">
+                    {/* User Info Header */}
+                    <DropdownMenuLabel className="p-2 font-normal">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-10 ring-1 ring-border shrink-0">
                           <AvatarImage
                             src={session.user.image ?? undefined}
                             alt={session.user.name}
@@ -265,7 +263,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="text-sm font-semibold text-foreground truncate leading-tight">
                               {session.user.name}
                             </span>
@@ -287,7 +285,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                     <DropdownMenuGroup>
                       <DropdownMenuItem
                         onClick={() => router.push(dashboardUrl)}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                        className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5"
                       >
                         <LayoutDashboard className="size-4 text-emerald-800 dark:text-emerald-400" />
                         <span>Dashboard</span>
@@ -295,7 +293,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
                       <DropdownMenuItem
                         onClick={() => router.push(appointmentsUrl)}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                        className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5"
                       >
                         <Calendar className="size-4 text-muted-foreground" />
                         <span>My Appointments</span>
@@ -304,7 +302,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                       {profileUrl && (
                         <DropdownMenuItem
                           onClick={() => router.push(profileUrl)}
-                          className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                          className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5"
                         >
                           <User className="size-4 text-muted-foreground" />
                           <span>My Profile</span>
@@ -314,7 +312,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                       {currentRole === "ADMIN" && (
                         <DropdownMenuItem
                           onClick={() => router.push("/all-users")}
-                          className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                          className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5"
                         >
                           <Shield className="size-4 text-muted-foreground" />
                           <span>All Users</span>
@@ -323,7 +321,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
                       <DropdownMenuItem
                         onClick={() => router.push("/my-prescriptions")}
-                        className="rounded-xl cursor-pointer py-2 text-sm gap-2.5"
+                        className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5"
                       >
                         <FileText className="size-4 text-muted-foreground" />
                         <span>Prescriptions</span>
@@ -334,16 +332,16 @@ export const Navbar1 = ({ className }: { className?: string }) => {
 
                     <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="rounded-xl cursor-pointer py-2 text-sm gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10"
+                      className="rounded-xl cursor-pointer py-2.5 text-sm gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 font-medium"
                     >
                       <LogOut className="size-4" />
-                      <span>Sign Out</span>
+                      <span>Log Out</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -362,26 +360,9 @@ export const Navbar1 = ({ className }: { className?: string }) => {
                 </Button>
               </div>
             )}
-          </div>
 
-          {/* Mobile Menu Trigger */}
-          <div className="flex items-center gap-2 md:hidden">
-            {!isPending && session && (
-              <button
-                type="button"
-                onClick={() => router.push(dashboardUrl)}
-                className="flex items-center rounded-full p-0.5 outline-none transition-all ring-offset-background hover:opacity-90 cursor-pointer"
-                title="Go to Dashboard"
-                aria-label="Go to Dashboard"
-              >
-                <Avatar className="size-8 ring-2 ring-emerald-800/20">
-                  <AvatarImage src={session.user.image ?? undefined} alt={session.user.name} />
-                  <AvatarFallback className="bg-emerald-950 text-white text-[11px] font-semibold">
-                    {getInitials(session.user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            )}
+            {/* Mobile Hamburger Sheet Trigger */}
+            <div className="flex items-center md:hidden">
 
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
@@ -603,6 +584,7 @@ export const Navbar1 = ({ className }: { className?: string }) => {
           </div>
         </div>
       </div>
-    </header>
-  );
+    </div>
+  </header>
+);
 };
