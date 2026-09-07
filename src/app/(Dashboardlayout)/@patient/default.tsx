@@ -1,14 +1,8 @@
-// import React from "react";
-
-// const PatientDashboardDefaultPage = () => {
-//   return <div>patient dashboard default</div>;
-// };
-
-// export default PatientDashboardDefaultPage;
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   CalendarDays,
   Clock3,
@@ -21,19 +15,21 @@ import {
   MapPin,
   CheckCircle2,
   CircleAlert,
+  Loader2,
+  FileText,
+  DollarSign,
+  User,
 } from "lucide-react";
-
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Area,
   AreaChart,
@@ -43,442 +39,356 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { authClient } from "@/lib/auth-client";
 
-const appointmentData = [
-  { month: "Jan", appointments: 2 },
-  { month: "Feb", appointments: 4 },
-  { month: "Mar", appointments: 3 },
-  { month: "Apr", appointments: 6 },
-  { month: "May", appointments: 5 },
-  { month: "Jun", appointments: 8 },
-  { month: "Jul", appointments: 6 },
-];
+export default function PatientDashboardDefaultPage() {
+  const { data: session } = authClient.useSession();
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const upcomingAppointments = [
-  {
-    doctor: "Dr. Sarah Ahmed",
-    specialty: "Clinical Psychologist",
-    date: "Aug 08, 2026",
-    time: "10:30 AM",
-    type: "Video Consultation",
-    status: "Confirmed",
-  },
-  {
-    doctor: "Dr. Mahmud Hasan",
-    specialty: "Psychiatrist",
-    date: "Aug 12, 2026",
-    time: "04:00 PM",
-    type: "In-person",
-    status: "Pending",
-  },
-  {
-    doctor: "Dr. Nusrat Jahan",
-    specialty: "Clinical Psychologist",
-    date: "Aug 18, 2026",
-    time: "11:00 AM",
-    type: "Video Consultation",
-    status: "Confirmed",
-  },
-];
+  useEffect(() => {
+    const fetchPatientData = async () => {
+      try {
+        const [appRes, prescRes] = await Promise.all([
+          fetch("/api/v1/appointment/my-appointments", { credentials: "include" }),
+          fetch("/api/v1/prescription/my-prescriptions", { credentials: "include" }),
+        ]);
 
-const recentActivities = [
-  {
-    title: "Appointment completed",
-    description: "Session with Dr. Sarah Ahmed",
-    time: "2 hours ago",
-    icon: CheckCircle2,
-  },
-  {
-    title: "Prescription updated",
-    description: "New prescription has been added",
-    time: "Yesterday",
-    icon: Stethoscope,
-  },
-  {
-    title: "Health assessment completed",
-    description: "Mental health assessment submitted",
-    time: "3 days ago",
-    icon: Activity,
-  },
-];
+        if (appRes.ok) {
+          const appData = await appRes.json();
+          setAppointments(appData.data || []);
+        }
 
-const PatientDashboardDefaultPage = () => {
+        if (prescRes.ok) {
+          const prescData = await prescRes.json();
+          setPrescriptions(prescData.data || []);
+        }
+      } catch (err) {
+        console.error("Patient dashboard data fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatientData();
+  }, []);
+
+  const patientName = session?.user?.name || "Patient";
+  const confirmedAppointments = appointments.filter(
+    (a) => a.appointmentStatus === "CONFIRMED",
+  );
+  const completedAppointments = appointments.filter(
+    (a) => a.appointmentStatus === "COMPLETED",
+  );
+  const pendingAppointments = appointments.filter(
+    (a) => a.appointmentStatus === "PENDING",
+  );
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthlyCounts: Record<string, number> = {};
+  monthNames.forEach((m) => (monthlyCounts[m] = 0));
+  appointments.forEach((a) => {
+    const month = monthNames[new Date(a.date).getMonth()];
+    if (monthlyCounts[month] !== undefined) monthlyCounts[month]++;
+  });
+  const chartData = monthNames.slice(0, 8).map((m) => ({
+    month: m,
+    appointments: monthlyCounts[m] || 0,
+  }));
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading your wellness dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-muted/30 p-4 md:p-6 lg:p-8">
-      <div className="mx-auto max-w-7xl space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Good morning, Iftekhar 👋
-            </h1>
+    <main className="space-y-6 min-h-screen">
+      {/* HEADER */}
+      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-5">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            Welcome back, {patientName} 🌸
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Track your psychological support journey, upcoming sessions, and treatment prescriptions.
+          </p>
+        </div>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              Here&apos;s an overview of your health and appointments.
-            </p>
-          </div>
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href="/psychologists"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-2.5 h-7 text-[0.8rem] font-medium hover:bg-muted"
+          >
+            Find a Psychologist
+          </Link>
 
-          <Button className="w-fit">
+          <Link
+            href="/patient-dashboard/my-appointments"
+            className="inline-flex items-center justify-center rounded-lg bg-[#0f241d] hover:bg-[#18392e] text-white px-2.5 h-7 text-[0.8rem] font-medium"
+          >
             <CalendarDays className="mr-2 h-4 w-4" />
-            Book Appointment
-          </Button>
+            My Appointments
+          </Link>
         </div>
+      </section>
 
-        {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Upcoming Appointments
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">3</h2>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Next: Aug 08, 2026
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-primary/10 p-3">
-                  <CalendarDays className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Completed Sessions
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">12</h2>
-
-                  <p className="mt-1 text-xs text-green-600">+3 this month</p>
-                </div>
-
-                <div className="rounded-xl bg-green-500/10 p-3">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Health Score</p>
-
-                  <h2 className="mt-2 text-3xl font-bold">82%</h2>
-
-                  <p className="mt-1 text-xs text-green-600">
-                    +8% from last month
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-blue-500/10 p-3">
-                  <HeartPulse className="h-5 w-5 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Pending Actions
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">2</h2>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Need your attention
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-orange-500/10 p-3">
-                  <CircleAlert className="h-5 w-5 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Grid */}
-        <div className="grid gap-6 lg:grid-cols-7">
-          {/* Appointment Chart */}
-          <Card className="lg:col-span-4">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Appointments Overview</CardTitle>
-                  <CardDescription>
-                    Your appointments over the last 7 months
-                  </CardDescription>
-                </div>
-
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={appointmentData}>
-                    <defs>
-                      <linearGradient
-                        id="appointmentGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0.25}
-                        />
-
-                        <stop
-                          offset="100%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      className="stroke-muted"
-                    />
-
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-
-                    <YAxis
-                      allowDecimals={false}
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-
-                    <Tooltip />
-
-                    <Area
-                      type="monotone"
-                      dataKey="appointments"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      fill="url(#appointmentGradient)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Health Summary */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Health Summary</CardTitle>
-              <CardDescription>Your current health overview</CardDescription>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
+      {/* STAT CARDS */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Sessions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-muted-foreground">Overall Health</span>
-
-                  <span className="font-medium">82%</span>
-                </div>
-
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full w-[82%] rounded-full bg-primary" />
-                </div>
+                <p className="text-xs font-medium text-muted-foreground">Total Booked Sessions</p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">{appointments.length}</h2>
+                <p className="mt-1 text-[11px] text-muted-foreground">Mental health consultations</p>
               </div>
+              <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+                <HeartPulse className="h-5 w-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Confirmed Sessions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-muted-foreground">Mental Wellness</span>
-
-                  <span className="font-medium">76%</span>
-                </div>
-
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full w-[76%] rounded-full bg-primary" />
-                </div>
+                <p className="text-xs font-medium text-muted-foreground">Confirmed & Ready</p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {confirmedAppointments.length}
+                </h2>
+                <p className="mt-1 text-[11px] text-emerald-600 font-medium">Scheduled with therapist</p>
               </div>
+              <div className="rounded-xl bg-emerald-800/10 p-2.5 text-emerald-800 dark:text-emerald-400">
+                <CalendarDays className="h-5 w-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Completed Sessions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
               <div>
-                <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Treatment Progress
-                  </span>
-
-                  <span className="font-medium">68%</span>
-                </div>
-
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full w-[68%] rounded-full bg-primary" />
-                </div>
+                <p className="text-xs font-medium text-muted-foreground">Completed Sessions</p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {completedAppointments.length}
+                </h2>
+                <p className="mt-1 text-[11px] text-blue-600 font-medium">Treatments received</p>
               </div>
-
-              <div className="rounded-xl border bg-muted/40 p-4">
-                <div className="flex gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <HeartPulse className="h-5 w-5 text-primary" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Keep going!</p>
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Your health progress is moving in a positive direction.
-                    </p>
-                  </div>
-                </div>
+              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Bottom Grid */}
-        <div className="grid gap-6 lg:grid-cols-7">
-          {/* Upcoming Appointments */}
-          <Card className="lg:col-span-4">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Upcoming Appointments</CardTitle>
-                  <CardDescription>
-                    Your next scheduled sessions
-                  </CardDescription>
-                </div>
-
-                <Button variant="outline" size="sm">
-                  View all
-                  <ArrowUpRight className="ml-2 h-4 w-4" />
-                </Button>
+        {/* Active Prescriptions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Prescriptions & Care</p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {prescriptions.length}
+                </h2>
+                <p className="mt-1 text-[11px] text-muted-foreground">Exercises & Guidance</p>
               </div>
-            </CardHeader>
+              <div className="rounded-xl bg-purple-500/10 p-2.5 text-purple-600">
+                <FileText className="h-5 w-5" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
-            <CardContent className="space-y-4">
-              {upcomingAppointments.map((appointment, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col gap-4 rounded-xl border p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+      {/* CHART & UPCOMING SESSIONS */}
+      <section className="grid gap-6 lg:grid-cols-7">
+        {/* Activity Chart */}
+        <Card className="lg:col-span-4 shadow-xs">
+          <CardHeader className="pb-2">
+            <div>
+              <CardTitle className="text-base font-semibold">Care Journey Frequency</CardTitle>
+              <CardDescription className="text-xs">
+                Monthly distribution of your mental health sessions
+              </CardDescription>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <div className="h-[260px] w-full pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="patientFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0f241d" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#0f241d" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted/60" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs text-muted-foreground" />
+                  <YAxis axisLine={false} tickLine={false} allowDecimals={false} className="text-xs text-muted-foreground" />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-md text-xs">
+                            <p className="font-semibold">{payload[0].payload.month}</p>
+                            <p className="text-muted-foreground">Appointments: {payload[0].value}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="appointments"
+                    stroke="#0f241d"
+                    strokeWidth={2}
+                    fill="url(#patientFill)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Next Consultations */}
+        <Card className="lg:col-span-3 shadow-xs flex flex-col justify-between">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold">Upcoming Sessions</CardTitle>
+              <Link
+                href="/patient-dashboard/my-appointments"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                View all
+              </Link>
+            </div>
+            <CardDescription className="text-xs">
+              Your scheduled therapy appointments
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-3 flex-1">
+            {appointments.length === 0 ? (
+              <div className="flex h-[200px] flex-col items-center justify-center text-center text-xs text-muted-foreground">
+                <CalendarDays className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                <p>No booked consultations yet.</p>
+                <Link
+                  href="/psychologists"
+                  className="mt-2 inline-flex items-center justify-center rounded-lg border border-border bg-background px-2.5 h-7 text-xs font-medium hover:bg-muted"
                 >
-                  <div className="flex gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                      <Stethoscope className="h-5 w-5 text-primary" />
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium">{appointment.doctor}</h3>
-
-                      <p className="text-sm text-muted-foreground">
-                        {appointment.specialty}
+                  Browse Psychologists
+                </Link>
+              </div>
+            ) : (
+              appointments.slice(0, 3).map((app) => (
+                <div
+                  key={app.id}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={app.psychologist?.profilePhoto || ""} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                        {app.psychologist?.name?.charAt(0) || "D"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="font-medium text-xs truncate text-foreground">
+                        {app.psychologist?.name || "Psychologist"}
                       </p>
-
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <CalendarDays className="h-3.5 w-3.5" />
-                          {appointment.date}
-                        </span>
-
-                        <span className="flex items-center gap-1">
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {appointment.time}
-                        </span>
-
-                        <span className="flex items-center gap-1">
-                          {appointment.type === "In-person" ? (
-                            <MapPin className="h-3.5 w-3.5" />
-                          ) : (
-                            <Video className="h-3.5 w-3.5" />
-                          )}
-
-                          {appointment.type}
-                        </span>
-                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {new Date(app.date).toLocaleDateString()} · {app.psychologist?.sector || "Consultation"}
+                      </p>
                     </div>
                   </div>
 
                   <Badge
                     variant={
-                      appointment.status === "Confirmed"
+                      app.appointmentStatus === "CONFIRMED"
                         ? "default"
+                        : app.appointmentStatus === "COMPLETED"
+                        ? "outline"
                         : "secondary"
                     }
+                    className="text-[10px]"
                   >
-                    {appointment.status}
+                    {app.appointmentStatus}
                   </Badge>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
-          {/* Recent Activity */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                Latest updates from your account
-              </CardDescription>
-            </CardHeader>
+      {/* RECENT PRESCRIPTIONS / CARE PLANS */}
+      <section>
+        <Card className="shadow-xs">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Prescriptions & Care Instructions</CardTitle>
+                <CardDescription className="text-xs">
+                  Treatment notes and recommendations from your psychologist
+                </CardDescription>
+              </div>
+              <Link
+                href="/my-prescriptions"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                View all
+              </Link>
+            </div>
+          </CardHeader>
 
-            <CardContent>
-              <div className="space-y-6">
-                {recentActivities.map((activity, index) => {
-                  const Icon = activity.icon;
-
-                  return (
-                    <div key={index} className="flex gap-4">
-                      <div className="relative">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                          <Icon className="h-4 w-4" />
-                        </div>
-
-                        {index !== recentActivities.length - 1 && (
-                          <div className="absolute left-1/2 top-9 h-8 w-px -translate-x-1/2 bg-border" />
-                        )}
+          <CardContent>
+            {prescriptions.length === 0 ? (
+              <div className="flex min-h-[140px] flex-col items-center justify-center text-center text-xs text-muted-foreground">
+                <FileText className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                <p>No prescriptions received yet.</p>
+                <p className="text-[11px] mt-0.5">Your psychologist will issue guidance after your session.</p>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {prescriptions.slice(0, 3).map((p) => (
+                  <Card key={p.id} className="p-4 border bg-muted/20 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-foreground">
+                          {p.psychologist?.name || "Psychologist"}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(p.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
 
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{activity.title}</p>
-
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {activity.description}
-                        </p>
-
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {activity.time}
-                        </p>
+                      <div className="text-xs space-y-1">
+                        <p><span className="text-muted-foreground font-medium">Medication:</span> {p.medication}</p>
+                        <p><span className="text-muted-foreground font-medium">Exercise:</span> {p.exercise}</p>
+                        <p><span className="text-muted-foreground font-medium">Duration:</span> {p.duration}</p>
                       </div>
                     </div>
-                  );
-                })}
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
+    </main>
   );
-};
-
-export default PatientDashboardDefaultPage;
+}

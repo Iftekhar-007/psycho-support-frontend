@@ -88,7 +88,7 @@ const BookAppointmentDialog = ({
   const handleSubmit = async () => {
     if (!session) {
       toast.error("Please sign in to book an appointment.");
-      router.push("/sign-in");
+      router.push("/auth/sign-in");
       return;
     }
 
@@ -114,21 +114,18 @@ const BookAppointmentDialog = ({
     setSubmitting(true);
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/v1/appointment/create-appointment`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            date: appointmentDate.toISOString(),
-            duration,
-            patientIssue: patientIssue.trim(),
-            recordHistory: recordHistory.trim() || undefined,
-            psychologistid: psychologistId,
-          }),
-        },
-      );
+      const res = await fetch("/api/v1/appointment/create-appointment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          date: appointmentDate.toISOString(),
+          duration,
+          patientIssue: patientIssue.trim(),
+          recordHistory: recordHistory.trim() || undefined,
+          psychologistid: psychologistId,
+        }),
+      });
 
       const json = await res.json();
 

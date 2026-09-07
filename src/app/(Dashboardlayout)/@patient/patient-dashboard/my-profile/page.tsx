@@ -1,13 +1,14 @@
+export const dynamic = "force-dynamic";
+
 import MyProfile from "@/app/ui-components/profile/my-profile";
 import { getMyProfile } from "@/lib/getMyProfile";
 import { redirect } from "next/navigation";
-// import { redirect } from "next/dist/server/api-utils";
 import React from "react";
 
 const MyProfilePatient = async () => {
   const data = await getMyProfile();
 
-  if (!data) redirect("/login");
+  if (!data) redirect("/auth/sign-in");
   return (
     <div>
       <MyProfile user={data} />

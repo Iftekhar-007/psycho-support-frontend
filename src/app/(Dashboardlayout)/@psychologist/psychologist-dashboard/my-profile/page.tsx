@@ -13,7 +13,7 @@ interface Props {
 const MyProfilePsychologist = async () => {
   const data = await getMyProfile();
 
-  if (!data) redirect("/login");
+  if (!data) redirect("/auth/sign-in");
   //   const profile = user.profile;
   return (
     <div>

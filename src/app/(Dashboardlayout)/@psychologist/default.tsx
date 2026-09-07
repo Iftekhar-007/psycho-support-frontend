@@ -1,26 +1,23 @@
-// import React from "react";
-
-// const PsychologistDefaultDashboardPage = () => {
-//   return <div>psychologist dashboard default</div>;
-// };
-
-// export default PsychologistDefaultDashboardPage;
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Activity,
   ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   Clock3,
+  DollarSign,
   FileText,
-  MessageSquare,
+  Loader2,
   MoreHorizontal,
+  TrendingUp,
+  User,
   Users,
   Video,
 } from "lucide-react";
-
 import {
   Area,
   AreaChart,
@@ -30,7 +27,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
 import {
   Card,
   CardContent,
@@ -38,524 +34,388 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authClient } from "@/lib/auth-client";
 
-const sessionData = [
-  { month: "Jan", sessions: 24 },
-  { month: "Feb", sessions: 31 },
-  { month: "Mar", sessions: 28 },
-  { month: "Apr", sessions: 36 },
-  { month: "May", sessions: 42 },
-  { month: "Jun", sessions: 39 },
-  { month: "Jul", sessions: 47 },
-];
+export default function PsychologistDashboardDefaultPage() {
+  const { data: session } = authClient.useSession();
+  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [totalIncome, setTotalIncome] = useState<number>(0);
 
-const appointments = [
-  {
-    name: "Sarah Johnson",
-    type: "Individual Therapy",
-    time: "09:30 AM",
-    duration: "50 min",
-    mode: "Video",
-    status: "Confirmed",
-  },
-  {
-    name: "Michael Brown",
-    type: "Follow-up Session",
-    time: "11:00 AM",
-    duration: "45 min",
-    mode: "In-person",
-    status: "Confirmed",
-  },
-  {
-    name: "Emily Davis",
-    type: "Initial Assessment",
-    time: "02:30 PM",
-    duration: "60 min",
-    mode: "Video",
-    status: "Pending",
-  },
-  {
-    name: "James Wilson",
-    type: "Individual Therapy",
-    time: "04:00 PM",
-    duration: "50 min",
-    mode: "Video",
-    status: "Confirmed",
-  },
-];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [appRes, payRes] = await Promise.all([
+          fetch("/api/v1/appointment/my-appointments", { credentials: "include" }),
+          fetch("/api/v1/payment/my-payments", { credentials: "include" }),
+        ]);
 
-const activities = [
-  {
-    title: "Session notes completed",
-    description: "Notes added for Sarah Johnson",
-    time: "25 minutes ago",
-    icon: FileText,
-  },
-  {
-    title: "New patient assigned",
-    description: "Emily Davis was assigned to you",
-    time: "2 hours ago",
-    icon: Users,
-  },
-  {
-    title: "New message",
-    description: "Michael Brown sent you a message",
-    time: "Yesterday",
-    icon: MessageSquare,
-  },
-  {
-    title: "Appointment completed",
-    description: "Session with James Wilson completed",
-    time: "Yesterday",
-    icon: CheckCircle2,
-  },
-];
+        if (appRes.ok) {
+          const appData = await appRes.json();
+          setAppointments(appData.data || []);
+        }
 
-const PsychologistDashboardDefaultPage = () => {
+        if (payRes.ok) {
+          const payData = await payRes.json();
+          setPayments(payData.data?.payments || payData.data || []);
+          setTotalIncome(payData.data?.totalIncome ?? 0);
+        }
+      } catch (err) {
+        console.error("Dashboard data fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const doctorName = session?.user?.name || "Doctor";
+  const completedCount = appointments.filter(
+    (a) => a.appointmentStatus === "COMPLETED",
+  ).length;
+  const confirmedCount = appointments.filter(
+    (a) => a.appointmentStatus === "CONFIRMED",
+  ).length;
+  const pendingCount = appointments.filter(
+    (a) => a.appointmentStatus === "PENDING",
+  ).length;
+
+  // Chart data from actual monthly appointments
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthlyCounts: Record<string, number> = {};
+  monthNames.forEach((m) => (monthlyCounts[m] = 0));
+  appointments.forEach((a) => {
+    const month = monthNames[new Date(a.date).getMonth()];
+    if (monthlyCounts[month] !== undefined) monthlyCounts[month]++;
+  });
+  const chartData = monthNames.slice(0, 8).map((m) => ({
+    month: m,
+    sessions: monthlyCounts[m] || 0,
+  }));
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading your practice dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6 lg:p-8">
-        {/* ================= HEADER ================= */}
-        <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Good morning, Dr. Sarah 👋
-            </h1>
+    <main className="min-h-screen space-y-6">
+      {/* HEADER */}
+      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b pb-5">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            Good day, {doctorName} 👋
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Here is an overview of your psychology practice, appointments, and earnings.
+          </p>
+        </div>
 
-            <p className="mt-1 text-sm text-muted-foreground">
-              Here&apos;s an overview of your practice today.
-            </p>
-          </div>
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href="/psychologist-dashboard/my-appointments"
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-2.5 h-7 text-[0.8rem] font-medium hover:bg-muted"
+          >
+            <CalendarDays className="mr-2 h-4 w-4" />
+            Manage Appointments
+          </Link>
 
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <CalendarDays className="mr-2 h-4 w-4" />
-              Calendar
-            </Button>
+          <Link
+            href="/psychologist-dashboard/my-profile"
+            className="inline-flex items-center justify-center rounded-lg bg-[#0f241d] hover:bg-[#18392e] text-white px-2.5 h-7 text-[0.8rem] font-medium"
+          >
+            <User className="mr-2 h-4 w-4" />
+            My Profile
+          </Link>
+        </div>
+      </section>
 
-            <Button>
-              <Users className="mr-2 h-4 w-4" />
-              Patients
-            </Button>
-          </div>
-        </section>
-
-        {/* ================= STAT CARDS ================= */}
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Patients */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Total Patients
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">128</h2>
-
-                  <p className="mt-1 text-xs text-green-600">
-                    +8.2% from last month
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-primary/10 p-3">
-                  <Users className="h-5 w-5 text-primary" />
-                </div>
+      {/* STAT CARDS */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Earnings */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow border-emerald-800/10">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Total Income / Earnings
+                </p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  ৳ {totalIncome.toLocaleString()}
+                </h2>
+                <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  Verified & Paid
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Today's Sessions */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Today&apos;s Sessions
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">6</h2>
-
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    2 remaining today
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-blue-500/10 p-3">
-                  <CalendarDays className="h-5 w-5 text-blue-600" />
-                </div>
+              <div className="rounded-xl bg-emerald-800/10 p-2.5 text-emerald-800 dark:text-emerald-400">
+                <DollarSign className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Monthly Sessions */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Monthly Sessions
-                  </p>
-
-                  <h2 className="mt-2 text-3xl font-bold">47</h2>
-
-                  <p className="mt-1 text-xs text-green-600">
-                    +12.5% from last month
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-green-500/10 p-3">
-                  <Activity className="h-5 w-5 text-green-600" />
-                </div>
+        {/* Confirmed Sessions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Confirmed Sessions
+                </p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {confirmedCount}
+                </h2>
+                <p className="mt-1 text-[11px] text-blue-600 font-medium">
+                  Ready for consultation
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Pending Notes */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending Notes</p>
-
-                  <h2 className="mt-2 text-3xl font-bold">4</h2>
-
-                  <p className="mt-1 text-xs text-orange-600">
-                    Requires attention
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-orange-500/10 p-3">
-                  <FileText className="h-5 w-5 text-orange-600" />
-                </div>
+              <div className="rounded-xl bg-blue-500/10 p-2.5 text-blue-600">
+                <CalendarDays className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
-        </section>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* ================= CHART + QUICK SUMMARY ================= */}
-        <section className="grid gap-6 lg:grid-cols-7">
-          {/* Chart */}
-          <Card className="lg:col-span-4">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Session Overview</CardTitle>
-
-                  <CardDescription>
-                    Your completed sessions over the last 7 months
-                  </CardDescription>
-                </div>
-
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
+        {/* Completed Sessions */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Completed Treatments
+                </p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {completedCount}
+                </h2>
+                <p className="mt-1 text-[11px] text-muted-foreground font-medium">
+                  Prescriptions issued
+                </p>
               </div>
-            </CardHeader>
-
-            <CardContent>
-              <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={sessionData}>
-                    <defs>
-                      <linearGradient
-                        id="sessionFill"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0.25}
-                        />
-
-                        <stop
-                          offset="100%"
-                          stopColor="hsl(var(--primary))"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
-
-                    <CartesianGrid
-                      vertical={false}
-                      strokeDasharray="3 3"
-                      className="stroke-muted"
-                    />
-
-                    <XAxis
-                      dataKey="month"
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      allowDecimals={false}
-                      className="text-xs"
-                    />
-
-                    <Tooltip />
-
-                    <Area
-                      type="monotone"
-                      dataKey="sessions"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2}
-                      fill="url(#sessionFill)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="rounded-xl bg-green-500/10 p-2.5 text-green-600">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Practice Overview */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Practice Overview</CardTitle>
-
-              <CardDescription>
-                Your current practice statistics
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="space-y-5">
-              {/* Active patients */}
-              <div className="flex items-center justify-between rounded-xl border p-4">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <Users className="h-4 w-4 text-primary" />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">Active Patients</p>
-
-                    <p className="text-xs text-muted-foreground">
-                      Currently in treatment
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-lg font-semibold">94</span>
+        {/* Pending Requests */}
+        <Card className="shadow-xs hover:shadow-sm transition-shadow">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Pending Requests
+                </p>
+                <h2 className="mt-1.5 text-2xl font-bold text-foreground">
+                  {pendingCount}
+                </h2>
+                <p className="mt-1 text-[11px] text-amber-600 font-medium">
+                  Requires confirmation
+                </p>
               </div>
-
-              {/* New patients */}
-              <div className="flex items-center justify-between rounded-xl border p-4">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-lg bg-blue-500/10 p-2">
-                    <UserPlusIcon />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium">New Patients</p>
-
-                    <p className="text-xs text-muted-foreground">
-                      Added this month
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-lg font-semibold">12</span>
+              <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600">
+                <Clock3 className="h-5 w-5" />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
-              {/* Completion */}
-              <div className="rounded-xl border p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Treatment Completion</p>
-
-                    <p className="text-xs text-muted-foreground">
-                      Overall completion rate
-                    </p>
-                  </div>
-
-                  <span className="font-semibold">78%</span>
-                </div>
-
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div className="h-full w-[78%] rounded-full bg-primary" />
-                </div>
+      {/* CHART & UPCOMING SESSIONS */}
+      <section className="grid gap-6 lg:grid-cols-7">
+        {/* Activity Chart */}
+        <Card className="lg:col-span-4 shadow-xs">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Consultation Activity</CardTitle>
+                <CardDescription className="text-xs">
+                  Session frequency over the past months
+                </CardDescription>
               </div>
+            </div>
+          </CardHeader>
 
-              {/* Satisfaction */}
-              <div className="rounded-xl bg-muted/50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Patient Satisfaction</p>
+          <CardContent>
+            <div className="h-[260px] w-full pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="sessionFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#0f241d" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#0f241d" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted/60" />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} className="text-xs text-muted-foreground" />
+                  <YAxis axisLine={false} tickLine={false} allowDecimals={false} className="text-xs text-muted-foreground" />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="rounded-lg border bg-background p-2 shadow-md text-xs">
+                            <p className="font-semibold">{payload[0].payload.month}</p>
+                            <p className="text-muted-foreground">Sessions: {payload[0].value}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="sessions"
+                    stroke="#0f241d"
+                    strokeWidth={2}
+                    fill="url(#sessionFill)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
 
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Based on recent feedback
-                    </p>
-                  </div>
+        {/* Recent Appointments */}
+        <Card className="lg:col-span-3 shadow-xs flex flex-col justify-between">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold">Recent Patients</CardTitle>
+              <Link
+                href="/psychologist-dashboard/my-appointments"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                View all
+              </Link>
+            </div>
+            <CardDescription className="text-xs">
+              Latest appointment bookings and patients
+            </CardDescription>
+          </CardHeader>
 
-                  <span className="text-xl font-bold">4.8/5</span>
-                </div>
+          <CardContent className="space-y-3 flex-1">
+            {appointments.length === 0 ? (
+              <div className="flex h-[200px] flex-col items-center justify-center text-center text-xs text-muted-foreground">
+                <Users className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                <p>No booked patients yet.</p>
               </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* ================= APPOINTMENTS + ACTIVITY ================= */}
-        <section className="grid gap-6 lg:grid-cols-7">
-          {/* Appointments */}
-          <Card className="lg:col-span-4">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Today&apos;s Appointments</CardTitle>
-
-                  <CardDescription>Your schedule for today</CardDescription>
-                </div>
-
-                <Button variant="outline" size="sm">
-                  View all
-                  <ArrowUpRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-3">
-              {appointments.map((appointment) => (
+            ) : (
+              appointments.slice(0, 4).map((app) => (
                 <div
-                  key={`${appointment.name}-${appointment.time}`}
-                  className="flex flex-col gap-4 rounded-xl border p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+                  key={app.id}
+                  className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/30 transition-colors"
                 >
-                  <div className="flex min-w-0 gap-4">
-                    {/* Avatar */}
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                      {appointment.name
-                        .split(" ")
-                        .map((word) => word[0])
-                        .join("")}
-                    </div>
-
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={app.patient?.profilePhoto || ""} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                        {app.patient?.name?.charAt(0) || "P"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="min-w-0">
-                      <h3 className="font-medium">{appointment.name}</h3>
-
-                      <p className="text-sm text-muted-foreground">
-                        {appointment.type}
+                      <p className="font-medium text-xs truncate text-foreground">
+                        {app.patient?.name || "Patient"}
                       </p>
-
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock3 className="h-3.5 w-3.5" />
-                          {appointment.time}
-                        </span>
-
-                        <span>{appointment.duration}</span>
-
-                        <span className="flex items-center gap-1">
-                          {appointment.mode === "Video" ? (
-                            <Video className="h-3.5 w-3.5" />
-                          ) : (
-                            <Users className="h-3.5 w-3.5" />
-                          )}
-
-                          {appointment.mode}
-                        </span>
-                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {new Date(app.date).toLocaleDateString()} · {app.duration || 60}m
+                      </p>
                     </div>
                   </div>
 
                   <Badge
                     variant={
-                      appointment.status === "Confirmed"
+                      app.appointmentStatus === "CONFIRMED"
                         ? "default"
+                        : app.appointmentStatus === "COMPLETED"
+                        ? "outline"
                         : "secondary"
                     }
+                    className="text-[10px]"
                   >
-                    {appointment.status}
+                    {app.appointmentStatus}
                   </Badge>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
-          {/* Recent Activity */}
-          <Card className="lg:col-span-3">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-
-              <CardDescription>
-                Latest activity in your practice
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <div className="space-y-6">
-                {activities.map((activity, index) => {
-                  const Icon = activity.icon;
-
-                  return (
-                    <div
-                      key={`${activity.title}-${index}`}
-                      className="flex gap-4"
-                    >
-                      <div className="relative">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                          <Icon className="h-4 w-4" />
-                        </div>
-
-                        {index < activities.length - 1 && (
-                          <div className="absolute left-1/2 top-9 h-8 w-px -translate-x-1/2 bg-border" />
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{activity.title}</p>
-
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {activity.description}
-                        </p>
-
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+      {/* RECENT PAYMENTS RECEIVED */}
+      <section>
+        <Card className="shadow-xs">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Payment & Earnings History</CardTitle>
+                <CardDescription className="text-xs">
+                  Direct payments made by patients for your consultations
+                </CardDescription>
               </div>
-            </CardContent>
-          </Card>
-        </section>
-      </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {payments.length === 0 ? (
+              <div className="flex min-h-[140px] flex-col items-center justify-center text-center text-xs text-muted-foreground">
+                <DollarSign className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                <p>No payments recorded yet.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b text-muted-foreground font-medium">
+                      <th className="pb-2.5">Patient</th>
+                      <th className="pb-2.5">Date</th>
+                      <th className="pb-2.5">Amount</th>
+                      <th className="pb-2.5">Gateway</th>
+                      <th className="pb-2.5 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-muted/50">
+                    {payments.slice(0, 6).map((pay: any) => (
+                      <tr key={pay.id} className="hover:bg-muted/20">
+                        <td className="py-3 font-medium text-foreground">
+                          {pay.appointment?.patient?.name || "Patient"}
+                        </td>
+                        <td className="py-3 text-muted-foreground">
+                          {new Date(pay.paymentDate || pay.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 font-semibold text-emerald-700 dark:text-emerald-400">
+                          ৳ {pay.amount}
+                        </td>
+                        <td className="py-3 text-muted-foreground">
+                          {pay.gateway || "Stripe"}
+                        </td>
+                        <td className="py-3 text-right">
+                          <Badge
+                            variant={pay.status === "COMPLETED" ? "default" : "secondary"}
+                            className="text-[10px]"
+                          >
+                            {pay.status === "COMPLETED" ? "Paid" : pay.status}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </main>
   );
-};
-
-/**
- * Small icon component used in the practice overview.
- * Keeping it here avoids adding another icon dependency.
- */
-const UserPlusIcon = () => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-blue-600"
-    >
-      <path d="M15 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="8" cy="7" r="4" />
-      <line x1="19" x2="19" y1="8" y2="14" />
-      <line x1="22" x2="16" y1="11" y2="11" />
-    </svg>
-  );
-};
-
-export default PsychologistDashboardDefaultPage;
+}

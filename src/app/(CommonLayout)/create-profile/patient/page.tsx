@@ -47,21 +47,18 @@ const CreatePatientProfile = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/patient/create-patientprofile`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...formData,
-            name: session?.user?.name,
-            email: session?.user?.email,
-          }),
+      const res = await fetch("/api/v1/patient/create-patientprofile", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          ...formData,
+          name: session?.user?.name,
+          email: session?.user?.email,
+        }),
+      });
 
       const data = await res.json();
 

@@ -1,30 +1,31 @@
 import { Route } from "@/types";
-import { CalendarIcon, PaperclipIcon, UsersIcon } from "lucide-react";
+import { LayoutDashboard, CalendarDays, FileText, User } from "lucide-react";
 
 export const psychologistRoutes: Route[] = [
   {
-    title: "Psychologist Dashboard",
+    title: "Psychologist Panel",
     items: [
+      {
+        title: "Overview",
+        url: "/dashboard",
+        icon: LayoutDashboard,
+      },
       {
         title: "My appointments",
         url: "/psychologist-dashboard/my-appointments",
-        icon: CalendarIcon,
+        icon: CalendarDays,
       },
       {
         title: "My profile",
         url: "/psychologist-dashboard/my-profile",
-        icon: UsersIcon,
+        icon: User,
       },
-      // {
-      //   title: "My patients",
-      //   url: "/my-patients",
-      //   icon: UsersIcon,
-      // },
       {
         title: "My prescriptions",
         url: "/my-prescriptions",
-        icon: PaperclipIcon,
+        icon: FileText,
       },
     ],
   },
 ];
+

@@ -1,25 +1,31 @@
 import { Route } from "@/types";
-import { CalendarIcon, PaperclipIcon, UsersIcon } from "lucide-react";
+import { LayoutDashboard, CalendarDays, FileText, User } from "lucide-react";
 
 export const patientRoutes: Route[] = [
   {
-    title: "Patient Dashboard",
+    title: "Patient Panel",
     items: [
+      {
+        title: "Overview",
+        url: "/dashboard",
+        icon: LayoutDashboard,
+      },
       {
         title: "My appointments",
         url: "/patient-dashboard/my-appointments",
-        icon: CalendarIcon,
+        icon: CalendarDays,
       },
       {
         title: "My profile",
         url: "/patient-dashboard/my-profile",
-        icon: UsersIcon,
+        icon: User,
       },
       {
         title: "My prescriptions",
         url: "/my-prescriptions",
-        icon: PaperclipIcon,
+        icon: FileText,
       },
     ],
   },
 ];
+

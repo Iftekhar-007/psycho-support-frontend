@@ -1,8 +1,10 @@
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
+import AdminDashboardDefaultPage from "../default";
 import React from "react";
 
 const AdminDashboard = () => {
-  return <div>Hi, Welcome back Admin</div>;
+  return <AdminDashboardDefaultPage />;
 };
 
 export default AdminDashboard;
+

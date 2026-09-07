@@ -53,24 +53,18 @@ export function CreatePrescriptionDialog({
     setError(null);
 
     try {
-      const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_API_URL ??
-          "https://psychology-support-backend.vercel.app"
-        }/api/v1/prescription/create-prescription`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appointmentId,
-            medication,
-            exercise,
-            duration,
-            notes: notes || undefined,
-          }),
-        },
-      );
+      const res = await fetch("/api/v1/prescription/create-prescription", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId,
+          medication,
+          exercise,
+          duration,
+          notes: notes || undefined,
+        }),
+      });
 
       const data = await res.json();
 

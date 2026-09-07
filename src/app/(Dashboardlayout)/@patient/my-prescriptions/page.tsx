@@ -28,13 +28,9 @@ export default function MyPrescriptions() {
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const res = await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BACKEND_API_URL ??
-            "https://psychology-support-backend.vercel.app"
-          }/api/v1/prescription/my-prescriptions`,
-          { credentials: "include" },
-        );
+        const res = await fetch("/api/v1/prescription/my-prescriptions", {
+          credentials: "include",
+        });
         const data = await res.json();
 
         if (!res.ok || !data.success) {

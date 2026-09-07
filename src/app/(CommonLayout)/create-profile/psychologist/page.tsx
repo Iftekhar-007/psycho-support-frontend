@@ -61,7 +61,7 @@ export default function CreatePsychologistProfile() {
       setLoading(true);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/psychologist/create-psychologistprofile`,
+        "/api/v1/psychologist/create-psychologistprofile",
         {
           method: "POST",
           credentials: "include",
